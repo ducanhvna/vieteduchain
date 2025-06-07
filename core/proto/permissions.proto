@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package permissions;
+
+message NodePermissionRequest {
+    string node_id = 1;
+    string requested_by = 2;
+}
+
+message NodePermissionVote {
+    string node_id = 1;
+    string voter_id = 2;
+    bool approve = 3;
+}
+
+message PermissionStatus {
+    string node_id = 1;
+    bool is_permitted = 2;
+}
+
+message PermissionList {
+    repeated string permitted_nodes = 1;
+}

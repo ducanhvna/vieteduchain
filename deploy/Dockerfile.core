@@ -1,0 +1,14 @@
+FROM golang:1.23.2 AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod tidy && go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o cosmos-permissioned-network ./cmd/main.go
+
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/cosmos-permissioned-network ./cosmos-permissioned-network
+RUN chmod +x ./cosmos-permissioned-network
+CMD ["./cosmos-permissioned-network"]

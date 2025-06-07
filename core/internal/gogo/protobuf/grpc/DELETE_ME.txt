@@ -1,0 +1,1 @@
+This directory is scheduled for deletion as part of cleaning up the gogo/protobuf/grpc hack.

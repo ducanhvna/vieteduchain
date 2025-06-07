@@ -1,0 +1,175 @@
+services:
+  core:
+    build:
+      context: ../core
+      dockerfile: ../deploy/Dockerfile.core
+    ports:
+      - "26657:26657"
+      - "26656:26656"
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command: ["./cosmos-permissioned-network", "start"]
+
+  api:
+    build:
+      context: ../api
+      dockerfile: ../deploy/Dockerfile.api
+    ports:
+      - "8279:8000"
+    volumes:
+      - ../api:/app
+      - ../config:/app/config
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ui:
+    build:
+      context: ../ui
+      dockerfile: Dockerfile
+    ports:
+      - "3179:3000"
+    volumes:
+      - ../ui:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run build && npm run start"
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  core1:
+    build:
+      context: ../core
+      dockerfile: ../deploy/Dockerfile.core
+    ports:
+      - "26658:26657"
+      - "26659:26656"
+    environment:
+      - NODE_ROLE=issuer
+      - NODE_ID=core1
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command: ["./cosmos-permissioned-network", "start"]
+
+  api1:
+    build:
+      context: ../api
+      dockerfile: ../deploy/Dockerfile.api
+    ports:
+      - "8280:8000"
+    volumes:
+      - ../api:/app
+      - ../config:/app/config
+    environment:
+      - NODE_ROLE=issuer
+      - NODE_ID=api1
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ui1:
+    build:
+      context: ../ui1
+      dockerfile: Dockerfile
+    ports:
+      - "3180:3000"
+    volumes:
+      - ../ui1:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run build && npm run start"
+    environment:
+      - NODE_ROLE=issuer
+      - NODE_ID=ui1
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  core2:
+    build:
+      context: ../core
+      dockerfile: ../deploy/Dockerfile.core
+    ports:
+      - "26667:26657"
+      - "26666:26656"
+    environment:
+      - NODE_ROLE=verifier
+      - NODE_ID=core2
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command: ["./cosmos-permissioned-network", "start"]
+
+  api2:
+    build:
+      context: ../api
+      dockerfile: ../deploy/Dockerfile.api
+    ports:
+      - "8289:8000"
+    volumes:
+      - ../api:/app
+      - ../config:/app/config
+    environment:
+      - NODE_ROLE=verifier
+      - NODE_ID=api2
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  ui2:
+    build:
+      context: ../ui2
+      dockerfile: Dockerfile
+    ports:
+      - "3189:3000"
+    volumes:
+      - ../ui2:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run build && npm run start"
+    environment:
+      - NODE_ROLE=verifier
+      - NODE_ID=ui2
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  cosmos-network:
+    driver: bridge
