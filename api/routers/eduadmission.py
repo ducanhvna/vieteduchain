@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 
@@ -21,6 +21,27 @@ class PushScoreRequest(BaseModel):
 
 class RunMatchingRequest(BaseModel):
     pass
+
+class AddSeatRequest(BaseModel):
+    seat_id: str
+    student_id: str
+    school: str
+    major: str
+    year: int
+
+class AddScoreRequest(BaseModel):
+    score_id: str
+    student_id: str
+    subject: str
+    score: float
+    year: int
+
+class AddResultRequest(BaseModel):
+    result_id: str
+    student_id: str
+    school: str
+    status: str
+    year: int
 
 @router.post("/eduadmission/mint_seat")
 def mint_seat(req: MintSeatRequest):
@@ -95,7 +116,21 @@ def list_seats():
 
 @router.get("/eduadmission/list_scores")
 def list_scores():
-    return list(scores.values())
+    # Ưu tiên trả về các bản ghi có trường score_id (dạng AddScoreRequest/dummy), nếu không thì trả về các bản ghi cũ
+    score_list = [s for s in scores.values() if "score_id" in s]
+    if not score_list:
+        # fallback: trả về các bản ghi cũ dạng {candidate_hash, score}
+        score_list = [
+            {
+                "score_id": k,
+                "student_id": v.get("candidate_hash", ""),
+                "subject": "",
+                "score": v.get("score", 0),
+                "year": ""
+            }
+            for k, v in scores.items()
+        ]
+    return score_list
 
 class AssignSeatRequest(BaseModel):
     seat_id: str
@@ -113,3 +148,27 @@ def assign_seat(req: AssignSeatRequest):
     seat["owner"] = req.candidate_hash
     seat["burned"] = True  # Burn seat after assignment (xác nhận nhập học)
     return {"success": True, "seat": seat}
+
+@router.post("/eduadmission/add_seat")
+def add_seat(req: AddSeatRequest):
+    if req.seat_id in seats:
+        raise HTTPException(status_code=400, detail="Seat already exists.")
+    seat = req.dict()
+    seats[req.seat_id] = seat
+    return {"success": True, "seat": seat}
+
+@router.post("/eduadmission/add_score")
+def add_score(req: AddScoreRequest):
+    if req.score_id in scores:
+        raise HTTPException(status_code=400, detail="Score already exists.")
+    score = req.dict()
+    scores[req.score_id] = score
+    return {"success": True, "score": score}
+
+@router.post("/eduadmission/add_result")
+def add_result(req: AddResultRequest):
+    if req.result_id in results:
+        raise HTTPException(status_code=400, detail="Result already exists.")
+    result = req.dict()
+    results[req.result_id] = result
+    return {"success": True, "result": result}

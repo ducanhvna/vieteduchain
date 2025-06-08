@@ -138,9 +138,25 @@ export default function EduAdmission() {
         <div>
           <h3>Danh sách điểm thi</h3>
           <table border={1} cellPadding={6} style={{ background: '#fff', borderCollapse: 'collapse' }}>
-            <thead><tr><th>Candidate Hash</th><th>Score</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Score ID</th>
+                <th>Student ID</th>
+                <th>Môn</th>
+                <th>Điểm</th>
+                <th>Năm</th>
+              </tr>
+            </thead>
             <tbody>
-              {scores.map(s => (<tr key={s.candidate_hash}><td>{s.candidate_hash}</td><td>{s.score}</td></tr>))}
+              {scores.map((s:any) => (
+                <tr key={s.score_id}>
+                  <td>{s.score_id}</td>
+                  <td>{s.student_id}</td>
+                  <td>{s.subject}</td>
+                  <td>{s.score}</td>
+                  <td>{s.year}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -177,9 +193,25 @@ export default function EduAdmission() {
         <div>
           <h3>Kết quả tuyển sinh</h3>
           <table border={1} cellPadding={6} style={{ background: '#fff', borderCollapse: 'collapse' }}>
-            <thead><tr><th>Candidate Hash</th><th>Seat ID</th><th>Admitted</th><th>Score</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Result ID</th>
+                <th>Student ID</th>
+                <th>Trường</th>
+                <th>Trạng thái</th>
+                <th>Năm</th>
+              </tr>
+            </thead>
             <tbody>
-              {results.map(r => (<tr key={r.candidate_hash}><td>{r.candidate_hash}</td><td>{r.seat_id||'-'}</td><td>{r.admitted ? '✔' : ''}</td><td>{r.score}</td></tr>))}
+              {results.map((r:any) => (
+                <tr key={r.result_id}>
+                  <td>{r.result_id}</td>
+                  <td>{r.student_id}</td>
+                  <td>{r.school}</td>
+                  <td>{r.status}</td>
+                  <td>{r.year}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
