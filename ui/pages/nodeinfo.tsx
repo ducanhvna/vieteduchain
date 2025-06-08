@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface NodeProfile {
   id: string;
@@ -22,7 +23,7 @@ export default function NodeInfo() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('/nodeinfo');
+        const res = await fetch(`${API_BASE_URL}/nodeinfo`);
         if (!res.ok) throw new Error('Không lấy được thông tin node');
         const data = await res.json();
         setNodeinfo(data);
@@ -106,7 +107,7 @@ export default function NodeInfo() {
               <div><b>ID:</b> {currentNode.id}</div>
               {currentNode.name && <div><b>Tên:</b> {currentNode.name}</div>}
               {currentNode.address && <div><b>Địa chỉ:</b> {currentNode.address}</div>}
-              <div><b>Quyền:</b> {currentPermission ? <span style={{color:'#009900'}}>Được cấp quyền</span> : <span style={{color:'#c00'}}>Chưa có quyền</span>}</div>
+              <div><b>Quyền cấp bằng:</b> {currentPermission ? <span style={{color:'#009900'}}>Được cấp quyền</span> : <span style={{color:'#c00'}}>Chưa có quyền</span>}</div>
             </div>
           ) : <div>Không xác định node hiện tại (NODE_ID).</div>}
         </div>
