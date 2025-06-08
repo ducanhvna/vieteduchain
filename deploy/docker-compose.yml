@@ -27,6 +27,7 @@ services:
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node1
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     networks:
       - cosmos-network
     healthcheck:
@@ -41,10 +42,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3179:3000"
-    volumes:
-      - ../ui:/app
-      - /app/node_modules
     command: sh -c "npm install && npm run build && npm run start"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8279
+      - NODE_ROLE=issuer
+      - NODE_ID=ui
     networks:
       - cosmos-network
     healthcheck:
@@ -84,6 +86,7 @@ services:
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=api1
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     networks:
       - cosmos-network
     healthcheck:
@@ -94,15 +97,13 @@ services:
 
   ui1:
     build:
-      context: ../ui1
+      context: ../ui
       dockerfile: Dockerfile
     ports:
       - "3180:3000"
-    volumes:
-      - ../ui1:/app
-      - /app/node_modules
     command: sh -c "npm install && npm run build && npm run start"
     environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8280
       - NODE_ROLE=issuer
       - NODE_ID=ui1
     networks:
@@ -144,6 +145,7 @@ services:
     environment:
       - NODE_ROLE=verifier
       - NODE_ID=api2
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     networks:
       - cosmos-network
     healthcheck:
@@ -154,15 +156,13 @@ services:
 
   ui2:
     build:
-      context: ../ui2
+      context: ../ui
       dockerfile: Dockerfile
     ports:
       - "3189:3000"
-    volumes:
-      - ../ui2:/app
-      - /app/node_modules
     command: sh -c "npm install && npm run build && npm run start"
     environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8289
       - NODE_ROLE=verifier
       - NODE_ID=ui2
     networks:
