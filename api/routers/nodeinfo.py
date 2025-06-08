@@ -38,18 +38,22 @@ def get_nodeinfo(request: Request):
     Trả về danh sách node có quyền, kèm thông tin node hiện tại (theo NODE_ID env)
     """
     initial_nodes = load_initial_nodes()
-    # Lấy NODE_ID hiện tại từ env (nếu có)
     current_node_id = os.getenv("NODE_ID", "")
-    # Danh sách node có quyền (theo permissions hoặc mặc định initial_nodes)
-    granted_ids = set([node for node, granted in permissions.items() if granted])
-    # Nếu permissions rỗng, lấy toàn bộ initial_nodes là granted
-    if not permissions:
-        granted_ids = set([n['id'] for n in initial_nodes])
-    # Lấy thông tin node có quyền
+    # Always treat initial_nodes as granted
+    granted_ids = set([n['id'] for n in initial_nodes])
+    # If permissions dict has extra granted nodes, add them
+    for node, granted in permissions.items():
+        if granted:
+            granted_ids.add(node)
     granted_nodes = [NodeProfile(**n) for n in initial_nodes if n['id'] in granted_ids]
-    # Thông tin node hiện tại
+    # If a granted node is not in initial_nodes (voted in), add minimal info
+    for node_id in granted_ids:
+        if not any(n['id'] == node_id for n in initial_nodes):
+            granted_nodes.append(NodeProfile(id=node_id))
+    # Find current node info
     current_node = next((NodeProfile(**n) for n in initial_nodes if n['id'] == current_node_id), None)
-    # Quyền của node hiện tại
+    if not current_node and current_node_id in granted_ids:
+        current_node = NodeProfile(id=current_node_id)
     current_permission = current_node_id in granted_ids if current_node_id else False
     return NodeInfoResponse(
         granted_nodes=granted_nodes,

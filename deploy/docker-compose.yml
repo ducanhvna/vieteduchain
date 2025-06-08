@@ -34,6 +34,8 @@ services:
       - NODE_ROLE=issuer
       - NODE_ID=node1
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - CORE_REST_URL=http://core:26657
     networks:
       - cosmos-network
     healthcheck:
@@ -95,6 +97,8 @@ services:
       - NODE_ROLE=issuer
       - NODE_ID=node2
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - CORE_REST_URL=http://core1:26657
     networks:
       - cosmos-network
     healthcheck:
@@ -156,6 +160,8 @@ services:
       - NODE_ROLE=verifier
       - NODE_ID=node3
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - CORE_REST_URL=http://core2:26657
     networks:
       - cosmos-network
     healthcheck:

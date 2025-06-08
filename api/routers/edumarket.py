@@ -2,11 +2,29 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from decimal import Decimal
-
-# In-memory mock DB (replace with contract calls in production)
-COURSE_NFTS = {}
+import os
+import requests
+import json
 
 router = APIRouter()
+
+EDUMARKET_CONTRACT_ADDR = os.getenv("EDUMARKET_CONTRACT_ADDR", "edumarket_contract_address")
+CORE_REST_URL = os.getenv("CORE_REST_URL", "http://core:26657")
+
+def wasm_query(contract_addr: str, query_msg: dict):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/smart/{json.dumps(query_msg)}"
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain query failed: {resp.text}")
+    return resp.json()["data"] if "data" in resp.json() else resp.json()
+
+def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/execute"
+    payload = {"sender": sender, "msg": exec_msg}
+    resp = requests.post(url, json=payload)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
+    return resp.json()
 
 class CourseNFT(BaseModel):
     id: str
@@ -27,49 +45,25 @@ class BuyCourseNFTRequest(BaseModel):
     buyer: str
     amount: Decimal
 
-@router.post("/edumarket/mint", response_model=CourseNFT)
+@router.post("/edumarket/mint")
 def mint_course_nft(req: MintCourseNFTRequest):
-    if req.id in COURSE_NFTS:
-        raise HTTPException(status_code=400, detail="Course already exists")
-    nft = CourseNFT(
-        id=req.id,
-        creator=req.creator,
-        owner=req.creator,
-        metadata=req.metadata,
-        price=req.price,
-        sold=False
-    )
-    COURSE_NFTS[req.id] = nft
-    return nft
+    exec_msg = {"mint_course_nft": req.dict()}
+    return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
 
-@router.post("/edumarket/buy", response_model=CourseNFT)
+@router.post("/edumarket/buy")
 def buy_course_nft(req: BuyCourseNFTRequest):
-    nft = COURSE_NFTS.get(req.id)
-    if not nft:
-        raise HTTPException(status_code=404, detail="CourseNFT not found")
-    if nft.sold:
-        raise HTTPException(status_code=400, detail="Course already sold")
-    if req.amount < nft.price:
-        raise HTTPException(status_code=400, detail="Insufficient payment")
-    # Fee logic (2%)
-    fee = nft.price * Decimal('0.02')
-    payout = nft.price - fee
-    # In production: transfer payout to creator, fee to scholarship fund
-    nft.owner = req.buyer
-    nft.sold = True
-    COURSE_NFTS[req.id] = nft
-    return nft
+    exec_msg = {"buy_course_nft": req.dict()}
+    return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
 
-@router.get("/edumarket/{id}", response_model=CourseNFT)
+@router.get("/edumarket/{id}")
 def get_course_nft(id: str):
-    nft = COURSE_NFTS.get(id)
-    if not nft:
-        raise HTTPException(status_code=404, detail="CourseNFT not found")
-    return nft
+    query_msg = {"get_course_nft": {"id": id}}
+    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
 
-@router.get("/edumarket", response_model=List[CourseNFT])
+@router.get("/edumarket")
 def list_course_nfts(sold: Optional[bool] = None):
-    nfts = list(COURSE_NFTS.values())
+    query_msg = {"list_course_nfts": {}}
+    nfts = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
     if sold is not None:
-        nfts = [n for n in nfts if n.sold == sold]
+        nfts = [n for n in nfts if n.get("sold") == sold]
     return nfts

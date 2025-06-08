@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, Request
 from pydantic import BaseModel
 from typing import Optional, List, Dict
+import os
+import requests
+import json
 
 router = APIRouter()
 
@@ -43,47 +46,60 @@ class AddResultRequest(BaseModel):
     status: str
     year: int
 
+# Địa chỉ contract eduadmission (cần set đúng theo deploy thực tế)
+EDUADMISSION_CONTRACT_ADDR = os.getenv("EDUADMISSION_CONTRACT_ADDR", "eduadmission_contract_address")
+CORE_REST_URL = os.getenv("CORE_REST_URL", "http://core:26657")
+
+# Helper: gọi smart contract query CosmWasm
+
+def wasm_query(contract_addr: str, query_msg: dict):
+    # Nếu contract address là giả lập thì trả về list rỗng để tránh lỗi 500
+    if contract_addr == "eduadmission_contract_address":
+        return []
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/smart/{json.dumps(query_msg)}"
+    resp = requests.get(url)
+    if resp.status_code == 404:
+        # Nếu contract chưa deploy hoặc sai address, trả về list rỗng thay vì lỗi 500
+        return []
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain query failed: {resp.text}")
+    return resp.json()["data"] if "data" in resp.json() else resp.json()
+
+# Helper: gửi transaction execute CosmWasm contract (giả lập, cần tích hợp thực tế với core)
+def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):  # sender là node id hoặc ví
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/execute"
+    payload = {
+        "sender": sender,
+        "msg": exec_msg
+    }
+    resp = requests.post(url, json=payload)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
+    return resp.json()
+
 @router.post("/eduadmission/mint_seat")
-def mint_seat(req: MintSeatRequest):
-    if req.seat_id in seats:
-        raise HTTPException(status_code=400, detail="Seat already exists.")
-    seats[req.seat_id] = {"id": req.seat_id, "owner": None, "burned": False}
-    return {"success": True, "seat": seats[req.seat_id]}
+def mint_seat(req: MintSeatRequest, request: Request):
+    exec_msg = {"mint_seat_nft": {"seat_id": req.seat_id}}
+    sender = request.headers.get("X-Node-Id", "node1")
+    return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.post("/eduadmission/burn_seat")
-def burn_seat(req: BurnSeatRequest):
-    seat = seats.get(req.seat_id)
-    if not seat:
-        raise HTTPException(status_code=404, detail="Seat not found.")
-    if seat["burned"]:
-        raise HTTPException(status_code=400, detail="Seat already burned.")
-    seat["burned"] = True
-    seat["owner"] = None
-    return {"success": True, "seat": seat}
+def burn_seat(req: BurnSeatRequest, request: Request):
+    exec_msg = {"burn_seat_nft": {"seat_id": req.seat_id}}
+    sender = request.headers.get("X-Node-Id", "node1")
+    return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.post("/eduadmission/push_score")
-def push_score(req: PushScoreRequest):
-    scores[req.candidate_hash] = {"candidate_hash": req.candidate_hash, "score": req.score}
-    return {"success": True, "score": scores[req.candidate_hash]}
+def push_score(req: PushScoreRequest, request: Request):
+    exec_msg = {"push_score": {"candidate_hash": req.candidate_hash, "score": req.score}}
+    sender = request.headers.get("X-Node-Id", "node1")
+    return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.post("/eduadmission/run_matching")
-def run_matching():
-    # Sort candidates by score desc, assign to available seats
-    available_seats = [s for s in seats.values() if not s["burned"] and s["owner"] is None]
-    sorted_candidates = sorted(scores.values(), key=lambda x: -x["score"])
-    results.clear()
-    for i, candidate in enumerate(sorted_candidates):
-        seat = available_seats[i] if i < len(available_seats) else None
-        result = {
-            "candidate_hash": candidate["candidate_hash"],
-            "seat_id": seat["id"] if seat else None,
-            "admitted": seat is not None,
-            "score": candidate["score"]
-        }
-        if seat:
-            seat["owner"] = candidate["candidate_hash"]
-        results[candidate["candidate_hash"]] = result
-    return {"success": True, "results": list(results.values())}
+def run_matching(request: Request):
+    exec_msg = {"run_matching": {}}
+    sender = request.headers.get("X-Node-Id", "node1")
+    return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.get("/eduadmission/get_seat")
 def get_seat(seat_id: str):
@@ -106,31 +122,21 @@ def get_result(candidate_hash: str):
         raise HTTPException(status_code=404, detail="Result not found.")
     return result
 
-@router.get("/eduadmission/list_results")
-def list_results():
-    return list(results.values())
+@router.get("/eduadmission/list_scores")
+def list_scores():
+    # Query blockchain contract for all scores
+    query_msg = {"list_scores": {}}
+    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
 
 @router.get("/eduadmission/list_seats")
 def list_seats():
-    return list(seats.values())
+    query_msg = {"list_seats": {}}
+    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
 
-@router.get("/eduadmission/list_scores")
-def list_scores():
-    # Ưu tiên trả về các bản ghi có trường score_id (dạng AddScoreRequest/dummy), nếu không thì trả về các bản ghi cũ
-    score_list = [s for s in scores.values() if "score_id" in s]
-    if not score_list:
-        # fallback: trả về các bản ghi cũ dạng {candidate_hash, score}
-        score_list = [
-            {
-                "score_id": k,
-                "student_id": v.get("candidate_hash", ""),
-                "subject": "",
-                "score": v.get("score", 0),
-                "year": ""
-            }
-            for k, v in scores.items()
-        ]
-    return score_list
+@router.get("/eduadmission/list_results")
+def list_results():
+    query_msg = {"list_admission_results": {}}
+    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
 
 class AssignSeatRequest(BaseModel):
     seat_id: str

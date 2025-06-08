@@ -2,12 +2,29 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 import time
+import os
+import requests
+import json
 
 router = APIRouter()
 
-# In-memory stores
-hash_records: Dict[str, dict] = {}
-bounty_claims: Dict[str, dict] = {}
+RESEARCHLEDGER_CONTRACT_ADDR = os.getenv("RESEARCHLEDGER_CONTRACT_ADDR", "researchledger_contract_address")
+CORE_REST_URL = os.getenv("CORE_REST_URL", "http://core:26657")
+
+def wasm_query(contract_addr: str, query_msg: dict):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/smart/{json.dumps(query_msg)}"
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain query failed: {resp.text}")
+    return resp.json()["data"] if "data" in resp.json() else resp.json()
+
+def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/execute"
+    payload = {"sender": sender, "msg": exec_msg}
+    resp = requests.post(url, json=payload)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
+    return resp.json()
 
 class RegisterHashRequest(BaseModel):
     hash: str
@@ -31,84 +48,45 @@ class RewardBountyRequest(BaseModel):
 
 @router.post("/research/register_hash")
 def register_hash(req: RegisterHashRequest):
-    if req.hash in hash_records:
-        raise HTTPException(status_code=400, detail="Hash already registered.")
-    record = {
-        "hash": req.hash,
-        "owner": req.owner,
-        "timestamp": int(time.time()),
-        "cid": req.cid,
-        "doi": req.doi,
-        "authors": req.authors,
-        "nft_id": None
-    }
-    hash_records[req.hash] = record
-    return {"success": True, "record": record}
+    exec_msg = {"register_hash": req.dict()}
+    return wasm_execute(RESEARCHLEDGER_CONTRACT_ADDR, exec_msg)
 
 @router.post("/research/mint_doi_nft")
 def mint_doi_nft(req: MintDOINFTRequest):
-    record = hash_records.get(req.hash)
-    if not record:
-        raise HTTPException(status_code=404, detail="Hash not found.")
-    if record["owner"] != req.owner:
-        raise HTTPException(status_code=403, detail="Only owner can mint NFT.")
-    nft_id = f"nft:{req.doi}:{req.hash}"
-    record["nft_id"] = nft_id
-    record["doi"] = req.doi
-    return {"success": True, "nft_id": nft_id, "record": record}
+    exec_msg = {"mint_doi_nft": req.dict()}
+    return wasm_execute(RESEARCHLEDGER_CONTRACT_ADDR, exec_msg)
 
 @router.post("/research/submit_plagiarism")
 def submit_plagiarism(req: SubmitPlagiarismRequest):
-    claim_id = f"{req.original_hash}:{req.plagiarized_hash}:{int(time.time())}"
-    if claim_id in bounty_claims:
-        raise HTTPException(status_code=400, detail="Claim already exists.")
-    claim = {
-        "original_hash": req.original_hash,
-        "plagiarized_hash": req.plagiarized_hash,
-        "claimer": req.claimer,
-        "rewarded": False
-    }
-    bounty_claims[claim_id] = claim
-    return {"success": True, "claim_id": claim_id, "claim": claim}
+    exec_msg = {"submit_plagiarism": req.dict()}
+    return wasm_execute(RESEARCHLEDGER_CONTRACT_ADDR, exec_msg)
 
 @router.post("/research/reward_bounty")
 def reward_bounty(req: RewardBountyRequest):
-    claim = bounty_claims.get(req.claim_id)
-    if not claim:
-        raise HTTPException(status_code=404, detail="Claim not found.")
-    if claim["rewarded"]:
-        raise HTTPException(status_code=400, detail="Already rewarded.")
-    claim["rewarded"] = True
-    # Simulate sending RESEARCH token (not implemented)
-    return {"success": True, "claim_id": req.claim_id, "claim": claim}
+    exec_msg = {"reward_bounty": req.dict()}
+    return wasm_execute(RESEARCHLEDGER_CONTRACT_ADDR, exec_msg)
 
 @router.get("/research/get_hash_record")
 def get_hash_record(hash: str):
-    record = hash_records.get(hash)
-    if not record:
-        raise HTTPException(status_code=404, detail="Hash not found.")
-    return record
+    query_msg = {"get_hash_record": {"hash": hash}}
+    return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)
 
 @router.get("/research/get_bounty_claim")
 def get_bounty_claim(claim_id: str):
-    claim = bounty_claims.get(claim_id)
-    if not claim:
-        raise HTTPException(status_code=404, detail="Claim not found.")
-    return claim
+    query_msg = {"get_bounty_claim": {"claim_id": claim_id}}
+    return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)
 
 @router.get("/research/list_hashes")
 def list_hashes():
-    return list(hash_records.values())
+    query_msg = {"list_hashes": {}}
+    return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)
 
 @router.get("/research/list_bounty_claims")
 def list_bounty_claims():
-    return [{"claim_id": k, **v} for k, v in bounty_claims.items()]
+    query_msg = {"list_bounty_claims": {}}
+    return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)
 
 @router.get("/research/search_hashes")
 def search_hashes(owner: str = None, doi: str = None):
-    results = list(hash_records.values())
-    if owner:
-        results = [r for r in results if r.get("owner") == owner]
-    if doi:
-        results = [r for r in results if r.get("doi") == doi]
-    return results
+    query_msg = {"search_hashes": {"owner": owner, "doi": doi}}
+    return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)

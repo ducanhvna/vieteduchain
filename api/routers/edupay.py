@@ -1,12 +1,29 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Optional
+import os
+import requests
+import json
 
 router = APIRouter()
 
-# In-memory store for eVND balances and escrows
-balances: Dict[str, float] = {}  # address -> eVND balance
-escrows: Dict[str, dict] = {}    # escrow_id -> escrow info
+EDUPAY_CONTRACT_ADDR = os.getenv("EDUPAY_CONTRACT_ADDR", "edupay_contract_address")
+CORE_REST_URL = os.getenv("CORE_REST_URL", "http://core:26657")
+
+def wasm_query(contract_addr: str, query_msg: dict):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/smart/{json.dumps(query_msg)}"
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain query failed: {resp.text}")
+    return resp.json()["data"] if "data" in resp.json() else resp.json()
+
+def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):
+    url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/execute"
+    payload = {"sender": sender, "msg": exec_msg}
+    resp = requests.post(url, json=payload)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
+    return resp.json()
 
 class MintRequest(BaseModel):
     address: str
@@ -32,60 +49,35 @@ class PriceQueryResponse(BaseModel):
 
 @router.post("/edupay/mint")
 def mint_evnd(req: MintRequest):
-    # Only for demo: anyone can mint
-    balances[req.address] = balances.get(req.address, 0) + req.amount
-    return {"success": True, "address": req.address, "balance": balances[req.address]}
+    exec_msg = {"mint_evnd": req.dict()}
+    return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
 
 @router.post("/edupay/transfer")
 def transfer_evnd(req: TransferRequest):
-    if balances.get(req.from_address, 0) < req.amount:
-        raise HTTPException(status_code=400, detail="Insufficient balance.")
-    balances[req.from_address] -= req.amount
-    balances[req.to_address] = balances.get(req.to_address, 0) + req.amount
-    return {"success": True, "from": req.from_address, "to": req.to_address, "amount": req.amount}
+    exec_msg = {"transfer_evnd": req.dict()}
+    return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
 
 @router.post("/edupay/escrow/create")
 def create_escrow(req: EscrowCreateRequest):
-    if balances.get(req.payer, 0) < req.amount:
-        raise HTTPException(status_code=400, detail="Insufficient balance.")
-    if req.escrow_id in escrows:
-        raise HTTPException(status_code=400, detail="Escrow already exists.")
-    balances[req.payer] -= req.amount
-    escrows[req.escrow_id] = {
-        "payer": req.payer,
-        "school": req.school,
-        "amount": req.amount,
-        "released": False
-    }
-    return {"success": True, "escrow_id": req.escrow_id, "escrow": escrows[req.escrow_id]}
+    exec_msg = {"create_escrow": req.dict()}
+    return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
 
 @router.post("/edupay/escrow/release")
 def release_escrow(req: EscrowReleaseRequest):
-    escrow = escrows.get(req.escrow_id)
-    if not escrow:
-        raise HTTPException(status_code=404, detail="Escrow not found.")
-    if escrow["released"]:
-        raise HTTPException(status_code=400, detail="Escrow already released.")
-    if not req.proof_of_enrollment:
-        raise HTTPException(status_code=400, detail="Proof of enrollment required.")
-    balances[escrow["school"]] = balances.get(escrow["school"], 0) + escrow["amount"]
-    escrow["released"] = True
-    return {"success": True, "escrow_id": req.escrow_id, "escrow": escrow}
+    exec_msg = {"release_escrow": req.dict()}
+    return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
 
 @router.get("/edupay/balance")
 def get_balance(address: str):
-    return {"address": address, "balance": balances.get(address, 0)}
+    query_msg = {"get_balance": {"address": address}}
+    return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
 
 @router.get("/edupay/escrow")
 def get_escrow(escrow_id: str):
-    escrow = escrows.get(escrow_id)
-    if not escrow:
-        raise HTTPException(status_code=404, detail="Escrow not found.")
-    return escrow
+    query_msg = {"get_escrow": {"escrow_id": escrow_id}}
+    return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
 
 @router.get("/edupay/price")
 def get_price():
-    # Simulate Band oracle: 1 USDC = 25,000 VND (demo, randomize slightly)
-    import random
-    price = 25000 * (1 + random.uniform(-0.0025, 0.0025))
-    return {"vnd_usdc": round(price, 2)}
+    query_msg = {"get_price": {}}
+    return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)

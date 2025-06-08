@@ -6,6 +6,71 @@ import os
 
 API_BASE = 'http://localhost:8279/api'
 
+# Auto-deploy contract if address is missing (for local dev/demo)
+def ensure_contract_address(contract_key, contract_name, wasm_path):
+    import subprocess
+    import json
+    import os
+    contract_json = os.path.join(os.path.dirname(__file__), '../deploy/contract_addresses/contract_addresses.json')
+    with open(contract_json) as f:
+        data = json.load(f)
+    if not data.get(contract_key):
+        print(f"[AutoDeploy] {contract_key} missing, attempting auto-deploy...")
+        WALLET = os.environ.get("DEPLOY_WALLET", "<WALLET>")
+        CHAIN_ID = os.environ.get("DEPLOY_CHAIN_ID", "<CHAIN_ID>")
+        NODE = os.environ.get("DEPLOY_NODE", "http://localhost:26657")
+        FEES = os.environ.get("DEPLOY_FEES", "5000stake")
+        wasm_path = os.path.join(os.path.dirname(__file__), '../', wasm_path)
+        if not os.path.exists(wasm_path):
+            print(f"[AutoDeploy] WASM file not found: {wasm_path}. Please build contract first.")
+            return None
+        # Store contract
+        store_cmd = f"wasmd tx wasm store {wasm_path} --from {WALLET} --chain-id {CHAIN_ID} --node {NODE} --gas auto --fees {FEES} --output json -y"
+        store_result = subprocess.check_output(store_cmd, shell=True)
+        store_json = json.loads(store_result)
+        code_id = None
+        for log in store_json.get("logs", []):
+            for event in log.get("events", []):
+                if event["type"] == "store_code":
+                    for attr in event["attributes"]:
+                        if attr["key"] == "code_id":
+                            code_id = attr["value"]
+        if not code_id:
+            print("[AutoDeploy] Cannot find code_id in store result")
+            return None
+        # Instantiate contract
+        inst_cmd = f"wasmd tx wasm instantiate {code_id} '{{}}' --from {WALLET} --label '{contract_name}' --admin {WALLET} --chain-id {CHAIN_ID} --node {NODE} --gas auto --fees {FEES} --output json -y"
+        inst_result = subprocess.check_output(inst_cmd, shell=True)
+        inst_json = json.loads(inst_result)
+        contract_addr = None
+        for log in inst_json.get("logs", []):
+            for event in log.get("events", []):
+                if event["type"] == "instantiate":
+                    for attr in event["attributes"]:
+                        if attr["key"] == "_contract_address":
+                            contract_addr = attr["value"]
+        if contract_addr:
+            data[contract_key] = contract_addr
+            with open(contract_json, "w") as f:
+                json.dump(data, f, indent=2)
+            print(f"[AutoDeploy] {contract_key} deployed: {contract_addr}")
+            return contract_addr
+        print("[AutoDeploy] Cannot find contract address in instantiate result")
+        return None
+    return data[contract_key]
+
+# Tự động deploy contract nếu chưa có địa chỉ, cho tất cả các module
+CONTRACTS = [
+    ("EDUADMISSION_CONTRACT_ADDR", "eduadmission", "cosmwasm-contracts/cosmwasm-contracts/eduadmission/artifacts/eduadmission.wasm"),
+    ("EDUID_CONTRACT_ADDR", "eduid", "cosmwasm-contracts/cosmwasm-contracts/eduid/artifacts/eduid.wasm"),
+    ("EDUCERT_CONTRACT_ADDR", "educert", "cosmwasm-contracts/cosmwasm-contracts/educert/artifacts/educert.wasm"),
+    ("EDUPAY_CONTRACT_ADDR", "edupay", "cosmwasm-contracts/cosmwasm-contracts/edupay/artifacts/edupay.wasm"),
+    ("EDUMARKET_CONTRACT_ADDR", "edumarket", "cosmwasm-contracts/cosmwasm-contracts/edumarket/artifacts/edumarket.wasm"),
+    ("RESEARCHLEDGER_CONTRACT_ADDR", "researchledger", "cosmwasm-contracts/cosmwasm-contracts/researchledger/artifacts/researchledger.wasm"),
+]
+for contract_key, contract_name, wasm_path in CONTRACTS:
+    ensure_contract_address(contract_key, contract_name, wasm_path)
+
 # 1. Dummy nodes (3 nodes only, not 100)
 nodes = [
     {"id": "node1", "name": "Dai hoc A", "address": "0x1111"},
@@ -180,3 +245,15 @@ score_ids = [create_score(i) for i in range(1, 101)]
 result_ids = [create_result(i) for i in range(1, 101)]
 
 print("Dummy data generation complete!")
+
+# Tự động sinh dữ liệu dummy và deploy contract khi container khởi động lần đầu
+def start_with_dummy():
+    import subprocess
+    try:
+        print("[Auto] Generating dummy data and deploying contracts if needed...")
+        subprocess.run(["python", "generate_dummy_data.py"], check=True)
+    except Exception as e:
+        print(f"[Auto] Dummy data generation failed: {e}")
+
+if __name__ == "__main__":
+    start_with_dummy()

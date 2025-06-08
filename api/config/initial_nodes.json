@@ -1,0 +1,19 @@
+{
+  "initial_nodes": [
+    {
+      "id": "node1",
+      "address": "192.168.1.1",
+      "name": "Node One"
+    },
+    {
+      "id": "node2",
+      "address": "192.168.1.2",
+      "name": "Node Two"
+    },
+    {
+      "id": "node3",
+      "address": "192.168.1.3",
+      "name": "Node Three"
+    }
+  ]
+}
