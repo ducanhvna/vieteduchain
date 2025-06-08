@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 
+interface NodeProfile {
+  id: string;
+  name?: string;
+  address?: string;
+}
+
 export default function NodeInfo() {
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const [nodeinfo, setNodeinfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -12,21 +18,21 @@ export default function NodeInfo() {
   const [uploadMessage, setUploadMessage] = useState('');
 
   useEffect(() => {
-    async function fetchPermissions() {
+    async function fetchNodeinfo() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch('/api/permissions');
-        if (!res.ok) throw new Error('Không lấy được danh sách node');
+        const res = await fetch('/nodeinfo');
+        if (!res.ok) throw new Error('Không lấy được thông tin node');
         const data = await res.json();
-        setPermissions(data);
+        setNodeinfo(data);
       } catch (e: any) {
         setError(e.message || 'Lỗi không xác định');
       } finally {
         setLoading(false);
       }
     }
-    fetchPermissions();
+    fetchNodeinfo();
   }, []);
 
   const handleSelectNode = (nodeId: string) => {
@@ -62,9 +68,12 @@ export default function NodeInfo() {
   const handleUpload = async () => {
     setUploadMessage('');
     if (!file) return;
-    // Demo: chỉ hiển thị tên file, không upload thực tế
     setUploadMessage(`Đã chọn file: ${file.name} (demo, chưa gửi lên backend)`);
   };
+
+  const grantedNodes: NodeProfile[] = nodeinfo?.granted_nodes || [];
+  const currentNode: NodeProfile | null = nodeinfo?.current_node || null;
+  const currentPermission: boolean = nodeinfo?.current_permission || false;
 
   return (
     <div style={{ padding: 32, maxWidth: 900, margin: '0 auto' }}>
@@ -77,15 +86,29 @@ export default function NodeInfo() {
           {error && <p style={{ color: 'red' }}>{error}</p>}
           {!loading && !error && (
             <ul style={{ paddingLeft: 18 }}>
-              {permissions.length === 0 && <li>Chưa có node nào có quyền.</li>}
-              {permissions.map(nodeId => (
-                <li key={nodeId} style={{ marginBottom: 4 }}>
-                  <button style={{ background: selectedNode === nodeId ? '#d0eaff' : '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }} onClick={() => handleSelectNode(nodeId)}>{nodeId}</button>
+              {grantedNodes.length === 0 && <li>Chưa có node nào có quyền.</li>}
+              {grantedNodes.map(node => (
+                <li key={node.id} style={{ marginBottom: 4 }}>
+                  <button style={{ background: selectedNode === node.id ? '#d0eaff' : '#fff', border: '1px solid #ccc', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }} onClick={() => handleSelectNode(node.id)}>
+                    {node.name || node.id} {node.address ? `(${node.address})` : ''}
+                  </button>
                 </li>
               ))}
             </ul>
           )}
-          <p style={{marginTop:16, color:'#888', fontSize:13}}>Danh sách lấy từ API /api/permissions.</p>
+          <p style={{marginTop:16, color:'#888', fontSize:13}}>Danh sách lấy từ API /api/nodeinfo.</p>
+        </div>
+        {/* Thông tin node hiện tại */}
+        <div style={{ flex: 1, minWidth: 260, background: '#f8f8f8', borderRadius: 8, padding: 20, boxShadow: '0 1px 4px #eee' }}>
+          <h3 style={{ marginTop: 0 }}>Node hiện tại (profile)</h3>
+          {currentNode ? (
+            <div>
+              <div><b>ID:</b> {currentNode.id}</div>
+              {currentNode.name && <div><b>Tên:</b> {currentNode.name}</div>}
+              {currentNode.address && <div><b>Địa chỉ:</b> {currentNode.address}</div>}
+              <div><b>Quyền:</b> {currentPermission ? <span style={{color:'#009900'}}>Được cấp quyền</span> : <span style={{color:'#c00'}}>Chưa có quyền</span>}</div>
+            </div>
+          ) : <div>Không xác định node hiện tại (NODE_ID).</div>}
         </div>
         {/* Tra cứu bằng cấp */}
         <div style={{ flex: 2, minWidth: 320, background: '#f8f8f8', borderRadius: 8, padding: 20, boxShadow: '0 1px 4px #eee' }}>

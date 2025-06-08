@@ -24,6 +24,9 @@ services:
     volumes:
       - ../api:/app
       - ../config:/app/config
+    environment:
+      - NODE_ROLE=issuer
+      - NODE_ID=api
     networks:
       - cosmos-network
     healthcheck:

@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from typing import List, Dict
 from models.node import Node
 import json
+import os
 
 class PermissionsService:
     def __init__(self, initial_nodes_file: str):
@@ -9,6 +10,11 @@ class PermissionsService:
         self.votes = {}
 
     def load_initial_nodes(self, file_path: str) -> List[str]:
+        # Nếu file_path là path tương đối, chuyển sang tuyệt đối dựa trên vị trí file này
+        if not os.path.isabs(file_path):
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(base_dir, '..', file_path)
+            file_path = os.path.abspath(file_path)
         with open(file_path, 'r') as file:
             data = json.load(file)
         return data.get("initial_nodes", [])
