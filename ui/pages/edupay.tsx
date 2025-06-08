@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function EduPay() {
   const [address, setAddress] = useState('');
@@ -20,7 +21,7 @@ export default function EduPay() {
     setMessage('');
     setBalance(null);
     try {
-      const res = await fetch(`/api/edupay/balance?address=${encodeURIComponent(address)}`);
+      const res = await fetch(`${API_BASE_URL}/api/edupay/balance?address=${encodeURIComponent(address)}`);
       const data = await res.json();
       setBalance(data.balance);
     } catch {
@@ -31,7 +32,7 @@ export default function EduPay() {
   const handleMint = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/edupay/mint', {
+      const res = await fetch(`${API_BASE_URL}/api/edupay/mint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, amount: parseFloat(mintAmount) })
@@ -47,7 +48,7 @@ export default function EduPay() {
   const handleTransfer = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/edupay/transfer', {
+      const res = await fetch(`${API_BASE_URL}/api/edupay/transfer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from_address: address, to_address: transferTo, amount: parseFloat(transferAmount) })
@@ -62,7 +63,7 @@ export default function EduPay() {
   const handleCreateEscrow = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/edupay/escrow/create', {
+      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ escrow_id: escrowId, payer: address, school: escrowSchool, amount: parseFloat(escrowAmount) })
@@ -78,7 +79,7 @@ export default function EduPay() {
   const handleReleaseEscrow = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/edupay/escrow/release', {
+      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow/release`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ escrow_id: releaseEscrowId, proof_of_enrollment: proof })
@@ -94,7 +95,7 @@ export default function EduPay() {
   const handleGetEscrow = async () => {
     setMessage('');
     try {
-      const res = await fetch(`/api/edupay/escrow?escrow_id=${encodeURIComponent(escrowId)}`);
+      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow?escrow_id=${encodeURIComponent(escrowId)}`);
       const data = await res.json();
       setEscrowInfo(data);
     } catch {
@@ -105,7 +106,7 @@ export default function EduPay() {
   const handleGetPrice = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/edupay/price');
+      const res = await fetch(`${API_BASE_URL}/api/edupay/price`);
       const data = await res.json();
       setPrice(data.vnd_usdc);
     } catch {

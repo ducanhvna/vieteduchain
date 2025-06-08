@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function ResearchLedger() {
   const [tab, setTab] = useState<'register'|'mint'|'plagiarism'|'reward'|'query'|'list'|'search'>('register');
@@ -32,7 +33,7 @@ export default function ResearchLedger() {
   const handleRegister = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/register_hash', {
+      const res = await fetch(`${API_BASE_URL}/api/research/register_hash`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hash, cid, doi, authors: authors.split(',').map(s=>s.trim()).filter(Boolean), owner })
       });
@@ -44,7 +45,7 @@ export default function ResearchLedger() {
   const handleMint = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/mint_doi_nft', {
+      const res = await fetch(`${API_BASE_URL}/api/research/mint_doi_nft`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hash: mintHash, doi: mintDoi, owner: mintOwner })
       });
@@ -56,7 +57,7 @@ export default function ResearchLedger() {
   const handlePlagiarism = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/submit_plagiarism', {
+      const res = await fetch(`${API_BASE_URL}/api/research/submit_plagiarism`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ original_hash: origHash, plagiarized_hash: plagHash, claimer })
       });
@@ -68,7 +69,7 @@ export default function ResearchLedger() {
   const handleReward = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/reward_bounty', {
+      const res = await fetch(`${API_BASE_URL}/api/research/reward_bounty`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ claim_id: rewardClaimId })
       });
@@ -80,7 +81,7 @@ export default function ResearchLedger() {
   const handleQueryHash = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch(`/api/research/get_hash_record?hash=${encodeURIComponent(queryHash)}`);
+      const res = await fetch(`${API_BASE_URL}/api/research/get_hash_record?hash=${encodeURIComponent(queryHash)}`);
       if (res.ok) {
         const data = await res.json();
         setResult(data);
@@ -91,7 +92,7 @@ export default function ResearchLedger() {
   const handleQueryClaim = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch(`/api/research/get_bounty_claim?claim_id=${encodeURIComponent(queryClaimId)}`);
+      const res = await fetch(`${API_BASE_URL}/api/research/get_bounty_claim?claim_id=${encodeURIComponent(queryClaimId)}`);
       if (res.ok) {
         const data = await res.json();
         setResult(data);
@@ -102,7 +103,7 @@ export default function ResearchLedger() {
   const handleList = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/list_hashes');
+      const res = await fetch(`${API_BASE_URL}/api/research/list_hashes`);
       const data = await res.json();
       setResult(data);
     } catch { setMessage('Lỗi khi liệt kê hash'); }
@@ -110,7 +111,7 @@ export default function ResearchLedger() {
   const handleListClaims = async () => {
     setMessage(''); setResult(null);
     try {
-      const res = await fetch('/api/research/list_bounty_claims');
+      const res = await fetch(`${API_BASE_URL}/api/research/list_bounty_claims`);
       const data = await res.json();
       setResult(data);
     } catch { setMessage('Lỗi khi liệt kê claim'); }
@@ -121,7 +122,7 @@ export default function ResearchLedger() {
       const params = [];
       if (searchOwner) params.push(`owner=${encodeURIComponent(searchOwner)}`);
       if (searchDoi) params.push(`doi=${encodeURIComponent(searchDoi)}`);
-      const res = await fetch(`/api/research/search_hashes?${params.join('&')}`);
+      const res = await fetch(`${API_BASE_URL}/api/research/search_hashes?${params.join('&')}`);
       const data = await res.json();
       setResult(data);
     } catch { setMessage('Lỗi khi tìm kiếm'); }

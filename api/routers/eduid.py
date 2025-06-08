@@ -67,3 +67,8 @@ def get_did_hash(did: str):
         raise HTTPException(status_code=404, detail="DID not found.")
     did_hash = hash_did_doc(did_doc)
     return {"did": did, "hash": did_hash}
+
+@router.get("/edu-id/list")
+def list_dids():
+    """Trả về danh sách tất cả DID đã đăng ký và DID document."""
+    return [{"did": did, "did_doc": doc} for did, doc in did_registry.items()]

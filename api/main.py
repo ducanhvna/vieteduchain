@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import permissions, permissions_service_router, educert, eduid, edupay, researchledger, eduadmission, nodeinfo
+from routers import permissions, permissions_service_router, educert, eduid, edupay, researchledger, eduadmission, nodeinfo, edumarket
 
 app = FastAPI()
 
@@ -20,14 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(permissions.router)
-app.include_router(permissions_service_router.router)
-app.include_router(educert.router)
-app.include_router(eduid.router)
-app.include_router(edupay.router)
-app.include_router(researchledger.router)
-app.include_router(eduadmission.router)
-app.include_router(nodeinfo.router)
+app.include_router(permissions.router, prefix="/api")
+app.include_router(permissions_service_router.router, prefix="/api")
+app.include_router(educert.router, prefix="/api")
+app.include_router(eduid.router, prefix="/api")
+app.include_router(edupay.router, prefix="/api")
+app.include_router(researchledger.router, prefix="/api")
+app.include_router(eduadmission.router, prefix="/api")
+app.include_router(nodeinfo.router, prefix="/api")
+app.include_router(edumarket.router, prefix="/api")
 
 @app.get("/")
 def read_root():

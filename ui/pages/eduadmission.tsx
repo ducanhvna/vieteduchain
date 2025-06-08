@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 export default function EduAdmission() {
   const [tab, setTab] = useState<'seats'|'scores'|'mint'|'burn'|'push'|'matching'|'results'|'assign'>('seats');
@@ -20,30 +21,30 @@ export default function EduAdmission() {
   const fetchSeats = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/list_seats');
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_seats`);
       setSeats(await res.json());
-    } catch { setMessage('Lỗi khi lấy danh sách chỉ tiêu'); }
+    } catch { setMessage('Lỗi khi tải danh sách ghế'); }
   };
   const fetchScores = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/list_scores');
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_scores`);
       setScores(await res.json());
-    } catch { setMessage('Lỗi khi lấy danh sách điểm'); }
+    } catch { setMessage('Lỗi khi tải điểm'); }
   };
   const fetchResults = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/list_results');
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_results`);
       setResults(await res.json());
-    } catch { setMessage('Lỗi khi lấy kết quả'); }
+    } catch { setMessage('Lỗi khi tải kết quả'); }
   };
 
   // Actions
   const handleMintSeat = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/mint_seat', {
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/mint_seat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seat_id: seatId })
       });
@@ -55,7 +56,7 @@ export default function EduAdmission() {
   const handleBurnSeat = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/burn_seat', {
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/burn_seat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seat_id: seatId })
       });
@@ -67,7 +68,7 @@ export default function EduAdmission() {
   const handlePushScore = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/push_score', {
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/push_score`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ candidate_hash: candidateHash, score: parseInt(score) })
       });
@@ -79,7 +80,7 @@ export default function EduAdmission() {
   const handleRunMatching = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/run_matching', { method: 'POST' });
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/run_matching`, { method: 'POST' });
       const data = await res.json();
       setMessage(data.success ? 'Matching thành công!' : data.detail || 'Lỗi matching');
       fetchResults();
@@ -89,7 +90,7 @@ export default function EduAdmission() {
   const handleAssignSeat = async () => {
     setMessage('');
     try {
-      const res = await fetch('/api/eduadmission/assign_seat', {
+      const res = await fetch(`${API_BASE_URL}/api/eduadmission/assign_seat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seat_id: assignSeatId, candidate_hash: assignCandidate })
       });

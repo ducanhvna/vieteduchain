@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 interface CourseNFT {
   id: string;
@@ -27,7 +28,7 @@ export default function EduMarket() {
   async function fetchNFTs() {
     setLoading(true);
     try {
-      const res = await axios.get('/api/edumarket');
+      const res = await axios.get(`${API_BASE_URL}/api/edumarket`);
       setNfts(res.data);
       setError(null);
     } catch (e: any) {
@@ -40,7 +41,7 @@ export default function EduMarket() {
     e.preventDefault();
     setMessage('');
     try {
-      await axios.post('/api/edumarket/mint', {
+      await axios.post(`${API_BASE_URL}/api/edumarket/mint`, {
         ...mintData,
         price: mintData.price,
       });
@@ -56,7 +57,7 @@ export default function EduMarket() {
     e.preventDefault();
     setMessage('');
     try {
-      await axios.post('/api/edumarket/buy', {
+      await axios.post(`${API_BASE_URL}/api/edumarket/buy`, {
         id: buyId,
         buyer,
         amount,

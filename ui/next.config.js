@@ -9,7 +9,7 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8279/api/:path*',
+        destination: 'http://api:8000/api/:path*', // Sử dụng tên service Docker Compose
       },
     ];
   },

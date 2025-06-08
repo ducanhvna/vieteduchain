@@ -23,7 +23,7 @@ export default function NodeInfo() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`${API_BASE_URL}/nodeinfo`);
+        const res = await fetch(`${API_BASE_URL}/api/nodeinfo`); // Sửa lại đúng endpoint
         if (!res.ok) throw new Error('Không lấy được thông tin node');
         const data = await res.json();
         setNodeinfo(data);
