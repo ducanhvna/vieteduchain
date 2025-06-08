@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "educert",
+    "eduid",
+    "edupay",
+    "researchledger",
+    "eduadmission"
+]

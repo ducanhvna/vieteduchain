@@ -1,41 +1,36 @@
 import { useState } from 'react';
 
 export default function Vote() {
-  const [nodeId, setNodeId] = useState('');
+  const [hash, setHash] = useState('');
   const [approve, setApprove] = useState(true);
   const [message, setMessage] = useState('');
 
   const handleVote = async () => {
-    if (!nodeId) return;
-    // TODO: Gọi API biểu quyết cho nodeId
-    setMessage(`Đã biểu quyết ${approve ? 'duyệt' : 'từ chối'} cho node ${nodeId} (giả lập).`);
+    if (!hash) return;
+    try {
+      const res = await fetch('/api/edu-cert/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hash })
+      });
+      const data = await res.json();
+      setMessage(data.message || JSON.stringify(data));
+    } catch (e) {
+      setMessage('Lỗi khi gọi API thu hồi');
+    }
   };
 
   return (
     <div style={{ padding: 32 }}>
-      <h2>Biểu Quyết Cấp Bằng Cho Node</h2>
+      <h2>Thu Hồi Bằng (Revoke Credential)</h2>
       <input
         type="text"
-        placeholder="Nhập Node ID"
-        value={nodeId}
-        onChange={e => setNodeId(e.target.value)}
+        placeholder="Nhập Hash (Node ID)"
+        value={hash}
+        onChange={e => setHash(e.target.value)}
       />
-      <label style={{ marginLeft: 8 }}>
-        <input
-          type="radio"
-          checked={approve}
-          onChange={() => setApprove(true)}
-        /> Duyệt
-      </label>
-      <label style={{ marginLeft: 8 }}>
-        <input
-          type="radio"
-          checked={!approve}
-          onChange={() => setApprove(false)}
-        /> Từ chối
-      </label>
-      <button onClick={handleVote} disabled={!nodeId} style={{ marginLeft: 8 }}>
-        Biểu Quyết
+      <button onClick={handleVote} disabled={!hash} style={{ marginLeft: 8 }}>
+        Thu Hồi
       </button>
       {message && <p>{message}</p>}
     </div>
