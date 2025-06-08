@@ -10,6 +10,7 @@ export default function Grant() {
   const [message, setMessage] = useState('');
   const [nodeInfo, setNodeInfo] = useState<any>(null);
   const [hashing, setHashing] = useState(false);
+  const [currentPermission, setCurrentPermission] = useState<boolean>(false);
 
   useEffect(() => {
     // Lấy thông tin node hiện tại từ API
@@ -18,6 +19,7 @@ export default function Grant() {
       .then(data => {
         setNodeInfo(data.current_node);
         setIssuer(data.current_node?.id || '');
+        setCurrentPermission(data.current_permission || false);
       });
   }, []);
 
@@ -58,6 +60,15 @@ export default function Grant() {
       setMessage('Lỗi khi gọi API cấp bằng');
     }
   };
+
+  if (!currentPermission) {
+    return (
+      <div style={{ padding: 32, maxWidth: 700, margin: '0 auto', color: '#c00', fontWeight: 500 }}>
+        <h2>Cấp Bằng (Credential)</h2>
+        <p>Node hiện tại <b>KHÔNG có quyền cấp bằng</b>. Vui lòng liên hệ node granting để được vote cấp quyền.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 32, maxWidth: 700, margin: '0 auto' }}>

@@ -14,6 +14,12 @@ services:
       timeout: 10s
       retries: 5
     command: ["./cosmos-permissioned-network", "start"]
+    environment:
+      - NODE_ROLE=issuer
+      - NODE_ID=node1
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+    volumes:
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
 
   api:
     build:
@@ -23,7 +29,7 @@ services:
       - "8279:8000"
     volumes:
       - ../api:/app
-      - ../config:/app/config
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node1
@@ -45,8 +51,7 @@ services:
     command: sh -c "npm install && npm run build && npm run start"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8279
-      - NODE_ROLE=issuer
-      - NODE_ID=ui
+      - NODE_ID=node1
     networks:
       - cosmos-network
     healthcheck:
@@ -64,7 +69,10 @@ services:
       - "26659:26656"
     environment:
       - NODE_ROLE=issuer
-      - NODE_ID=core1
+      - NODE_ID=node2
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+    volumes:
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
     networks:
       - cosmos-network
     healthcheck:
@@ -82,10 +90,10 @@ services:
       - "8280:8000"
     volumes:
       - ../api:/app
-      - ../config:/app/config
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
     environment:
       - NODE_ROLE=issuer
-      - NODE_ID=api1
+      - NODE_ID=node2
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     networks:
       - cosmos-network
@@ -104,8 +112,7 @@ services:
     command: sh -c "npm install && npm run build && npm run start"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8280
-      - NODE_ROLE=issuer
-      - NODE_ID=ui1
+      - NODE_ID=node2
     networks:
       - cosmos-network
     healthcheck:
@@ -123,7 +130,10 @@ services:
       - "26666:26656"
     environment:
       - NODE_ROLE=verifier
-      - NODE_ID=core2
+      - NODE_ID=node3
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+    volumes:
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
     networks:
       - cosmos-network
     healthcheck:
@@ -141,10 +151,10 @@ services:
       - "8289:8000"
     volumes:
       - ../api:/app
-      - ../config:/app/config
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
     environment:
       - NODE_ROLE=verifier
-      - NODE_ID=api2
+      - NODE_ID=node3
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     networks:
       - cosmos-network
@@ -163,8 +173,7 @@ services:
     command: sh -c "npm install && npm run build && npm run start"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:8289
-      - NODE_ROLE=verifier
-      - NODE_ID=ui2
+      - NODE_ID=node3
     networks:
       - cosmos-network
     healthcheck:
