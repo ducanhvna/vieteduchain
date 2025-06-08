@@ -1,8 +1,9 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, QueryRequest};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json};
 use serde::{Serialize, Deserialize};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use schemars::JsonSchema;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SeatNFT {
@@ -72,7 +73,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Instanti
 
 #[entry_point]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec_msg: ExecuteMsg = cosmwasm_std::from_binary(&msg)?;
+    let exec_msg: ExecuteMsg = from_json(&msg)?;
     match exec_msg {
         ExecuteMsg::MintSeatNFT { seat_id } => mint_seat_nft(deps, info, seat_id),
         ExecuteMsg::BurnSeatNFT { seat_id } => burn_seat_nft(deps, info, seat_id),
@@ -87,26 +88,26 @@ fn mint_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult
         return Err(cosmwasm_std::StdError::generic_err("Seat already exists"));
     }
     let seat = SeatNFT { id: seat_id.clone(), owner: None, burned: false };
-    deps.storage.set(&key, &to_binary(&seat)?);
+    deps.storage.set(&key, &to_json_binary(&seat)?);
     Ok(Response::new().add_attribute("action", "mint_seat_nft").add_attribute("seat_id", seat_id))
 }
 
 fn burn_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult<Response> {
     let key = seat_key(&seat_id);
-    let mut seat: SeatNFT = cosmwasm_std::from_binary(&deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("SeatNFT"))?)?;
+    let seat_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("SeatNFT"))?;
+    let mut seat: SeatNFT = from_json(&Binary(seat_bin))?;
     if seat.burned {
         return Err(cosmwasm_std::StdError::generic_err("Seat already burned"));
     }
     seat.burned = true;
-    seat.owner = None;
-    deps.storage.set(&key, &to_binary(&seat)?);
+    deps.storage.set(&key, &to_json_binary(&seat)?);
     Ok(Response::new().add_attribute("action", "burn_seat_nft").add_attribute("seat_id", seat_id))
 }
 
 fn push_score(deps: DepsMut, info: MessageInfo, candidate_hash: String, score: u32) -> StdResult<Response> {
     let key = score_key(&candidate_hash);
     let score_rec = CandidateScore { candidate_hash: candidate_hash.clone(), score };
-    deps.storage.set(&key, &to_binary(&score_rec)?);
+    deps.storage.set(&key, &to_json_binary(&score_rec)?);
     Ok(Response::new().add_attribute("action", "push_score").add_attribute("candidate_hash", candidate_hash))
 }
 
@@ -123,7 +124,7 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
     let score_iter = deps.storage.range(Some(score_prefix), None, Order::Ascending);
     for item in score_iter {
         if let Ok((_, v)) = item {
-            if let Ok(s) = cosmwasm_std::from_binary::<CandidateScore>(&v) {
+            if let Ok(s) = from_json::<CandidateScore>(&Binary(v)) {
                 scores.push(s);
             }
         }
@@ -132,7 +133,7 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
     let seat_iter = deps.storage.range(Some(seat_prefix), None, Order::Ascending);
     for item in seat_iter {
         if let Ok((_, v)) = item {
-            if let Ok(seat) = cosmwasm_std::from_binary::<SeatNFT>(&v) {
+            if let Ok(seat) = from_json::<SeatNFT>(&Binary(v)) {
                 if !seat.burned && seat.owner.is_none() {
                     seats.push(seat);
                 }
@@ -155,10 +156,10 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
             let mut seat_nft = seat.clone();
             seat_nft.owner = Some(Addr::unchecked(candidate.candidate_hash.clone()));
             let seat_key = seat_key(&seat_nft.id);
-            deps.storage.set(&seat_key, &to_binary(&seat_nft)?);
+            deps.storage.set(&seat_key, &to_json_binary(&seat_nft)?);
         }
         let result_key = result_key(&candidate.candidate_hash);
-        deps.storage.set(&result_key, &to_binary(&result)?);
+        deps.storage.set(&result_key, &to_json_binary(&result)?);
         results.push(result);
     }
     Ok(Response::new().add_attribute("action", "run_matching").add_attribute("assigned", results.len().to_string()))
@@ -166,7 +167,7 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
-    let query_msg: QueryMsg = cosmwasm_std::from_binary(&msg)?;
+    let query_msg: QueryMsg = from_json(&msg)?;
     match query_msg {
         QueryMsg::GetSeatNFT { seat_id } => {
             let key = seat_key(&seat_id);
@@ -190,12 +191,12 @@ pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
             let result_iter = deps.storage.range(Some(result_prefix), None, Order::Ascending);
             for item in result_iter {
                 if let Ok((_, v)) = item {
-                    if let Ok(r) = cosmwasm_std::from_binary::<AdmissionResult>(&v) {
+                    if let Ok(r) = from_json::<AdmissionResult>(&Binary(v)) {
                         results.push(r);
                     }
                 }
             }
-            Ok(to_binary(&results)?)
+            to_json_binary(&results)
         },
     }
 }

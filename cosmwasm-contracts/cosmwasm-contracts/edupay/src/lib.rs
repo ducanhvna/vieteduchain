@@ -1,5 +1,5 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, Addr, Coin, BankMsg, WasmMsg, Uint128};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json, Addr, Coin, BankMsg, WasmMsg, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -47,7 +47,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Instanti
 
 #[entry_point]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec_msg: ExecuteMsg = cosmwasm_std::from_binary(&msg)?;
+    let exec_msg: ExecuteMsg = from_json(&msg)?;
     match exec_msg {
         ExecuteMsg::CreateEscrow { school, amount, denom } => create_escrow(deps, env, info, school, amount, denom),
         ExecuteMsg::SetProofOfEnrollment { escrow_id } => set_proof_of_enrollment(deps, info, escrow_id),
@@ -74,24 +74,26 @@ fn create_escrow(deps: DepsMut, env: Env, info: MessageInfo, school: String, amo
         released: false,
         proof_of_enrollment: false,
     };
-    deps.storage.set(&key, &to_binary(&escrow)?);
+    deps.storage.set(&key, &to_json_binary(&escrow)?);
     Ok(Response::new().add_attribute("action", "create_escrow").add_attribute("escrow_id", escrow_id))
 }
 
 fn set_proof_of_enrollment(deps: DepsMut, info: MessageInfo, escrow_id: String) -> StdResult<Response> {
     let key = escrow_key(&escrow_id);
-    let mut escrow: Escrow = cosmwasm_std::from_binary(&deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("Escrow"))?)?;
+    let escrow_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("Escrow"))?;
+    let mut escrow: Escrow = from_json(&Binary(escrow_bin))?;
     if info.sender != escrow.school {
         return Err(cosmwasm_std::StdError::generic_err("Only school can set proof of enrollment"));
     }
     escrow.proof_of_enrollment = true;
-    deps.storage.set(&key, &to_binary(&escrow)?);
+    deps.storage.set(&key, &to_json_binary(&escrow)?);
     Ok(Response::new().add_attribute("action", "set_proof_of_enrollment").add_attribute("escrow_id", escrow_id))
 }
 
 fn release(deps: DepsMut, env: Env, info: MessageInfo, escrow_id: String) -> StdResult<Response> {
     let key = escrow_key(&escrow_id);
-    let mut escrow: Escrow = cosmwasm_std::from_binary(&deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("Escrow"))?)?;
+    let escrow_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("Escrow"))?;
+    let mut escrow: Escrow = from_json(&Binary(escrow_bin))?;
     if escrow.released {
         return Err(cosmwasm_std::StdError::generic_err("Escrow already released"));
     }
@@ -102,7 +104,7 @@ fn release(deps: DepsMut, env: Env, info: MessageInfo, escrow_id: String) -> Std
         return Err(cosmwasm_std::StdError::generic_err("Only payer or school can release"));
     }
     escrow.released = true;
-    deps.storage.set(&key, &to_binary(&escrow)?);
+    deps.storage.set(&key, &to_json_binary(&escrow)?);
     // Send funds to school
     let send = BankMsg::Send {
         to_address: escrow.school.to_string(),
@@ -113,7 +115,7 @@ fn release(deps: DepsMut, env: Env, info: MessageInfo, escrow_id: String) -> Std
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
-    let query_msg: QueryMsg = cosmwasm_std::from_binary(&msg)?;
+    let query_msg: QueryMsg = from_json(&msg)?;
     match query_msg {
         QueryMsg::GetEscrow { escrow_id } => {
             let key = escrow_key(&escrow_id);

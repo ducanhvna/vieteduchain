@@ -1,11 +1,12 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, QueryRequest};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json, QueryRequest};
+use schemars::JsonSchema;
 
 // -------- EduCert contract logic --------
 // IssueVC: Lưu hash và metadata của credential
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Credential {
     pub hash: String,
     pub metadata: String,
@@ -14,7 +15,7 @@ pub struct Credential {
     pub revoked: bool,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ExecuteMsg {
     IssueVC {
         hash: String,
@@ -27,14 +28,13 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum QueryMsg {
     IsRevoked { hash: String },
     GetCredential { hash: String },
 }
 
 use cosmwasm_std::{StdError, Storage, Addr};
-use cosmwasm_std::{to_binary, entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary};
 use cosmwasm_std::attr;
 use std::collections::HashMap;
 
@@ -47,7 +47,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: ()) -> S
 
 #[entry_point]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec: ExecuteMsg = cosmwasm_std::from_binary(&msg)?;
+    let exec: ExecuteMsg = from_json(&msg)?;
     match exec {
         ExecuteMsg::IssueVC { hash, metadata, issuer, signature } => {
             let key = format!("{}{}", PREFIX, hash);
@@ -58,14 +58,15 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: Binary) -> StdR
                 signature,
                 revoked: false,
             };
-            deps.storage.set(key.as_bytes(), &cosmwasm_std::to_binary(&cred)?);
+            deps.storage.set(key.as_bytes(), &to_json_binary(&cred)?);
             Ok(Response::new().add_attribute("action", "issue_vc").add_attribute("issuer", info.sender))
         },
         ExecuteMsg::RevokeVC { hash } => {
             let key = format!("{}{}", PREFIX, hash);
-            let mut cred: Credential = cosmwasm_std::from_binary(&deps.storage.get(key.as_bytes()).ok_or(StdError::not_found("Credential"))?)?;
+            let cred_bin = deps.storage.get(key.as_bytes()).ok_or(StdError::not_found("Credential"))?;
+            let mut cred: Credential = from_json(&Binary(cred_bin))?;
             cred.revoked = true;
-            deps.storage.set(key.as_bytes(), &cosmwasm_std::to_binary(&cred)?);
+            deps.storage.set(key.as_bytes(), &to_json_binary(&cred)?);
             Ok(Response::new().add_attribute("action", "revoke_vc").add_attribute("hash", hash))
         }
     }
@@ -73,23 +74,23 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: Binary) -> StdR
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
-    let query: QueryMsg = cosmwasm_std::from_binary(&msg)?;
+    let query: QueryMsg = from_json(&msg)?;
     match query {
         QueryMsg::IsRevoked { hash } => {
             let key = format!("{}{}", PREFIX, hash);
             let cred_bin = deps.storage.get(key.as_bytes());
             let revoked = if let Some(bin) = cred_bin {
-                let cred: Credential = cosmwasm_std::from_binary(&bin)?;
+                let cred: Credential = from_json(&Binary(bin))?;
                 cred.revoked
             } else {
                 false
             };
-            to_binary(&revoked)
+            to_json_binary(&revoked)
         },
         QueryMsg::GetCredential { hash } => {
             let key = format!("{}{}", PREFIX, hash);
             let cred_bin = deps.storage.get(key.as_bytes()).ok_or(StdError::not_found("Credential"))?;
-            to_binary(&cosmwasm_std::from_binary::<Credential>(&cred_bin)?)
+            to_json_binary(&from_json::<Credential>(&Binary(cred_bin))?)
         }
     }
 }

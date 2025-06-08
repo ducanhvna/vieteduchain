@@ -1,5 +1,5 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, Addr, Coin, BankMsg, Uint128};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json, Addr, Coin, BankMsg, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +63,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Instanti
 
 #[entry_point]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec_msg: ExecuteMsg = cosmwasm_std::from_binary(&msg)?;
+    let exec_msg: ExecuteMsg = from_json(&msg)?;
     match exec_msg {
         ExecuteMsg::RegisterHash { hash, cid, doi, authors } => register_hash(deps, env, info, hash, cid, doi, authors),
         ExecuteMsg::MintDOINFT { hash, doi } => mint_doi_nft(deps, env, info, hash, doi),
@@ -86,13 +86,14 @@ fn register_hash(deps: DepsMut, env: Env, info: MessageInfo, hash: String, cid: 
         authors,
         nft_id: None,
     };
-    deps.storage.set(&key, &to_binary(&record)?);
+    deps.storage.set(&key, &to_json_binary(&record)?);
     Ok(Response::new().add_attribute("action", "register_hash").add_attribute("hash", hash))
 }
 
 fn mint_doi_nft(deps: DepsMut, env: Env, info: MessageInfo, hash: String, doi: String) -> StdResult<Response> {
     let key = hash_key(&hash);
-    let mut record: HashRecord = cosmwasm_std::from_binary(&deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("HashRecord"))?)?;
+    let record_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("HashRecord"))?;
+    let mut record: HashRecord = from_json(&Binary(record_bin))?;
     if record.owner != info.sender {
         return Err(cosmwasm_std::StdError::generic_err("Only owner can mint NFT"));
     }
@@ -100,8 +101,8 @@ fn mint_doi_nft(deps: DepsMut, env: Env, info: MessageInfo, hash: String, doi: S
     let nft_id = format!("nft:{}:{}", doi, hash);
     record.nft_id = Some(nft_id.clone());
     record.doi = Some(doi.clone());
-    deps.storage.set(&key, &to_binary(&record)?);
-    Ok(Response::new().add_attribute("action", "mint_doi_nft").add_attribute("nft_id", nft_id))
+    deps.storage.set(&key, &to_json_binary(&record)?);
+    Ok(Response::new().add_attribute("action", "mint_doi_nft").add_attribute("hash", hash).add_attribute("nft_id", nft_id))
 }
 
 fn submit_plagiarism(deps: DepsMut, env: Env, info: MessageInfo, original_hash: String, plagiarized_hash: String) -> StdResult<Response> {
@@ -116,26 +117,26 @@ fn submit_plagiarism(deps: DepsMut, env: Env, info: MessageInfo, original_hash: 
         claimer: info.sender.clone(),
         rewarded: false,
     };
-    deps.storage.set(&key, &to_binary(&claim)?);
+    deps.storage.set(&key, &to_json_binary(&claim)?);
     Ok(Response::new().add_attribute("action", "submit_plagiarism").add_attribute("claim_id", claim_id))
 }
 
 fn reward_bounty(deps: DepsMut, env: Env, info: MessageInfo, claim_id: String) -> StdResult<Response> {
     let key = bounty_key(&claim_id);
-    let mut claim: BountyClaim = cosmwasm_std::from_binary(&deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("BountyClaim"))?)?;
+    let mut claim: BountyClaim = from_json(&Binary(deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("BountyClaim"))?))?;
     if claim.rewarded {
         return Err(cosmwasm_std::StdError::generic_err("Already rewarded"));
     }
     // Only contract owner or original_hash owner can reward (for demo, allow anyone)
     claim.rewarded = true;
-    deps.storage.set(&key, &to_binary(&claim)?);
+    deps.storage.set(&key, &to_json_binary(&claim)?);
     // Simulate sending RESEARCH token (not implemented)
     Ok(Response::new().add_attribute("action", "reward_bounty").add_attribute("claim_id", claim_id))
 }
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
-    let query_msg: QueryMsg = cosmwasm_std::from_binary(&msg)?;
+    let query_msg: QueryMsg = from_json(&msg)?;
     match query_msg {
         QueryMsg::GetHashRecord { hash } => {
             let key = hash_key(&hash);

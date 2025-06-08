@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Body, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Optional, List, Dict
 import os
 import requests
@@ -39,12 +39,24 @@ class AddScoreRequest(BaseModel):
     score: float
     year: int
 
+    @validator('score')
+    def score_must_be_valid(cls, v):
+        if not (0 <= v <= 10):
+            raise ValueError('score must be between 0 and 10')
+        return v
+
 class AddResultRequest(BaseModel):
     result_id: str
     student_id: str
     school: str
     status: str
     year: int
+
+    @validator('status')
+    def status_must_be_valid(cls, v):
+        if v not in ["Đỗ", "Trượt"]:
+            raise ValueError('status must be "Đỗ" hoặc "Trượt"')
+        return v
 
 # Địa chỉ contract eduadmission (cần set đúng theo deploy thực tế)
 EDUADMISSION_CONTRACT_ADDR = os.getenv("EDUADMISSION_CONTRACT_ADDR", "eduadmission_contract_address")

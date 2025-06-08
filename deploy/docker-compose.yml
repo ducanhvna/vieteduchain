@@ -20,6 +20,8 @@ services:
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+    depends_on:
+      - wasm-builder
 
   api:
     build:
@@ -30,6 +32,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node1
@@ -43,6 +46,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - wasm-builder
 
   ui:
     build:
@@ -83,6 +88,8 @@ services:
       timeout: 10s
       retries: 5
     command: ["./cosmos-permissioned-network", "start"]
+    depends_on:
+      - wasm-builder
 
   api1:
     build:
@@ -93,6 +100,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node2
@@ -106,6 +114,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - wasm-builder
 
   ui1:
     build:
@@ -146,6 +156,8 @@ services:
       timeout: 10s
       retries: 5
     command: ["./cosmos-permissioned-network", "start"]
+    depends_on:
+      - wasm-builder
 
   api2:
     build:
@@ -156,6 +168,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
     environment:
       - NODE_ROLE=verifier
       - NODE_ID=node3
@@ -169,6 +182,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - wasm-builder
 
   ui2:
     build:
@@ -187,6 +202,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  wasm-builder:
+    build:
+      context: ../cosmwasm-contracts
+      dockerfile: Dockerfile
+    volumes:
+      - ../cosmwasm-contracts:/code
+    networks:
+      - cosmos-network
+    command: ["tail", "-f", "/dev/null"]
 
 networks:
   cosmos-network:

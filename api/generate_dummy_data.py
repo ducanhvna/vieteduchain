@@ -10,8 +10,20 @@ API_BASE = 'http://localhost:8279/api'
 def ensure_contract_address(contract_key, contract_name, wasm_path):
     import subprocess
     import json
-    import os
-    contract_json = os.path.join(os.path.dirname(__file__), '../deploy/contract_addresses/contract_addresses.json')
+    # Sử dụng path tuyệt đối trong container Docker, hoặc path local khi chạy ngoài Docker
+    contract_json = os.environ.get("CONTRACT_JSON_PATH") or os.path.join(os.path.dirname(__file__), '../deploy/contract_addresses/contract_addresses.json')
+    if not os.path.exists(contract_json):
+        # Tạo file nếu chưa có
+        os.makedirs(os.path.dirname(contract_json), exist_ok=True)
+        with open(contract_json, "w") as f:
+            json.dump({
+                "EDUADMISSION_CONTRACT_ADDR": "",
+                "EDUID_CONTRACT_ADDR": "",
+                "EDUCERT_CONTRACT_ADDR": "",
+                "EDUPAY_CONTRACT_ADDR": "",
+                "EDUMARKET_CONTRACT_ADDR": "",
+                "RESEARCHLEDGER_CONTRACT_ADDR": ""
+            }, f, indent=2)
     with open(contract_json) as f:
         data = json.load(f)
     if not data.get(contract_key):
@@ -245,15 +257,3 @@ score_ids = [create_score(i) for i in range(1, 101)]
 result_ids = [create_result(i) for i in range(1, 101)]
 
 print("Dummy data generation complete!")
-
-# Tự động sinh dữ liệu dummy và deploy contract khi container khởi động lần đầu
-def start_with_dummy():
-    import subprocess
-    try:
-        print("[Auto] Generating dummy data and deploying contracts if needed...")
-        subprocess.run(["python", "generate_dummy_data.py"], check=True)
-    except Exception as e:
-        print(f"[Auto] Dummy data generation failed: {e}")
-
-if __name__ == "__main__":
-    start_with_dummy()

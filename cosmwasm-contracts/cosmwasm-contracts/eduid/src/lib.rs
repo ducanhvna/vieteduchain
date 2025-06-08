@@ -1,5 +1,5 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, QueryRequest, Addr, Storage};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json, QueryRequest, Addr, Storage};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -51,7 +51,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: Instanti
 
 #[entry_point]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec_msg: ExecuteMsg = cosmwasm_std::from_binary(&msg)?;
+    let exec_msg: ExecuteMsg = from_json(&msg)?;
     match exec_msg {
         ExecuteMsg::RegisterDID { did_doc } => try_register_did(deps, info, did_doc),
         ExecuteMsg::UpdateDID { did_doc } => try_update_did(deps, info, did_doc),
@@ -65,8 +65,8 @@ fn try_register_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> S
     if deps.storage.get(&key).is_some() {
         return Err(cosmwasm_std::StdError::generic_err("DID already registered"));
     }
-    let doc_bin = to_binary(&did_doc)?;
-    deps.storage.set(&key, &doc_bin);
+    let doc_bin = to_json_binary(&did_doc)?;
+    deps.storage.set(&key, doc_bin.as_slice());
     // Hash and store hash
     let mut hasher = Sha256::new();
     hasher.update(&doc_bin);
@@ -82,8 +82,8 @@ fn try_update_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> Std
     if deps.storage.get(&key).is_none() {
         return Err(cosmwasm_std::StdError::not_found("DID"));
     }
-    let doc_bin = to_binary(&did_doc)?;
-    deps.storage.set(&key, &doc_bin);
+    let doc_bin = to_json_binary(&did_doc)?;
+    deps.storage.set(&key, doc_bin.as_slice());
     // Hash and store hash
     let mut hasher = Sha256::new();
     hasher.update(&doc_bin);
@@ -94,17 +94,17 @@ fn try_update_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> Std
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
-    let query_msg: QueryMsg = cosmwasm_std::from_binary(&msg)?;
+    let query_msg: QueryMsg = from_json(&msg)?;
     match query_msg {
         QueryMsg::GetDID { did } => {
             let key = did_doc_key(&did);
-            let doc_bin = deps.storage.get(&key).ok_or_else(|| cosmwasm_std::StdError::not_found("DID"))?;
-            Ok(Binary(doc_bin))
+            let doc_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("DIDDocument"))?;
+            to_json_binary(&from_json::<DIDDocument>(&Binary(doc_bin))?)
         },
         QueryMsg::GetDIDHash { did } => {
             let key = did_hash_key(&did);
-            let hash = deps.storage.get(&key).ok_or_else(|| cosmwasm_std::StdError::not_found("DID hash"))?;
-            Ok(Binary(hash))
-        },
+            let hash_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("DIDHash"))?;
+            to_json_binary(&hash_bin)
+        }
     }
 }
