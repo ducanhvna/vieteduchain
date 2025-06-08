@@ -13,6 +13,8 @@ export default function Home() {
         <li><Link href="/edupay">Thanh toán học phí & học bổng (EduPay)</Link></li>
         <li><Link href="/researchledger">ResearchLedger – Chống đạo văn</Link></li>
         <li><Link href="/nodeinfo">Thông tin node (danh sách node có quyền)</Link></li>
+        <li><Link href="/eduadmission">Tuyển sinh minh bạch (EduAdmission)</Link></li>
+        <li><Link href="/edumarket">EduMarket – Course NFT Marketplace</Link></li>
       </ul>
       <p>Chọn chức năng phù hợp với quyền hạn node của bạn.</p>
     </div>
