@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/cosmos-permissioned-network ./cosmos-permissioned-network
 COPY ../deploy/entrypoint_core.sh ./entrypoint_core.sh
 RUN chmod +x ./cosmos-permissioned-network && chmod +x ./entrypoint_core.sh
-CMD ["./cosmos-permissioned-network"]
+CMD ["./entrypoint_core.sh"]

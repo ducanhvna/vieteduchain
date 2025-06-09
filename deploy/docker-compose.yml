@@ -50,6 +50,7 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
+      - core
       - wasm-builder
 
   ui:
@@ -69,6 +70,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - api
 
   core1:
     build:
@@ -95,6 +98,7 @@ services:
       retries: 5
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
+      - core
       - wasm-builder
 
   api1:
@@ -121,6 +125,7 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
+      - core1
       - wasm-builder
 
   ui1:
@@ -140,6 +145,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - api1
 
   core2:
     build:
@@ -166,6 +173,7 @@ services:
       retries: 5
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
+      - core
       - wasm-builder
 
   api2:
@@ -192,6 +200,7 @@ services:
       timeout: 10s
       retries: 5
     depends_on:
+      - core2
       - wasm-builder
 
   ui2:
@@ -211,6 +220,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    depends_on:
+      - api2
 
   wasm-builder:
     build:
