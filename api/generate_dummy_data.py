@@ -202,58 +202,33 @@ for _ in range(100):
 # 6. Dummy EduAdmission (seats, scores, results)
 def create_seat(idx):
     seat_id = f"seat-{idx:03d}"
-    student_id = random.choice(did_list)
-    school = random.choice(nodes)["id"]
-    major = random.choice(["CNTT", "Kinh tế", "Luật", "Y dược"])
-    payload = {
-        "seat_id": seat_id,
-        "student_id": student_id,
-        "school": school,
-        "major": major,
-        "year": 2025
-    }
-    r = requests.post(f"{API_BASE}/eduadmission/add_seat", json=payload)
+    payload = {"seat_id": seat_id}
+    r = requests.post(f"{API_BASE}/eduadmission/mint_seat", json=payload)
     if r.status_code != 200:
         print(f"[Seat] {seat_id} error: {r.text}")
     return seat_id
 
 def create_score(idx):
     score_id = f"score-{idx:03d}"
-    student_id = random.choice(did_list)
-    subject = random.choice(["Toán", "Văn", "Anh", "Lý", "Hóa", "Sinh"])
+    candidate_hash = random.choice(did_list)
     score = round(random.uniform(5, 10), 2)
-    payload = {
-        "score_id": score_id,
-        "student_id": student_id,
-        "subject": subject,
-        "score": score,
-        "year": 2025
-    }
-    r = requests.post(f"{API_BASE}/eduadmission/add_score", json=payload)
+    payload = {"candidate_hash": candidate_hash, "score": score}
+    r = requests.post(f"{API_BASE}/eduadmission/push_score", json=payload)
     if r.status_code != 200:
         print(f"[Score] {score_id} error: {r.text}")
     return score_id
 
 def create_result(idx):
-    result_id = f"result-{idx:03d}"
-    student_id = random.choice(did_list)
-    school = random.choice(nodes)["id"]
-    status = random.choice(["Đỗ", "Trượt"])
-    payload = {
-        "result_id": result_id,
-        "student_id": student_id,
-        "school": school,
-        "status": status,
-        "year": 2025
-    }
-    r = requests.post(f"{API_BASE}/eduadmission/add_result", json=payload)
-    if r.status_code != 200:
-        print(f"[Result] {result_id} error: {r.text}")
-    return result_id
+    # Không có endpoint add_result, chỉ chạy run_matching nếu muốn sinh kết quả tự động
+    # Có thể bỏ qua hoặc gọi run_matching một lần sau khi sinh seat/score
+    return None
 
 # Sinh dữ liệu dummy cho EduAdmission
 seat_ids = [create_seat(i) for i in range(1, 101)]
 score_ids = [create_score(i) for i in range(1, 101)]
-result_ids = [create_result(i) for i in range(1, 101)]
+# Gọi run_matching sau khi có seat và score
+r = requests.post(f"{API_BASE}/eduadmission/run_matching")
+if r.status_code != 200:
+    print(f"[Matching] error: {r.text}")
 
 print("Dummy data generation complete!")

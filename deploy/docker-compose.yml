@@ -20,6 +20,9 @@ services:
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../cosmwasm-contracts:/code
+    entrypoint: ["/app/entrypoint_core.sh"]
     depends_on:
       - wasm-builder
 
@@ -74,12 +77,15 @@ services:
     ports:
       - "26658:26657"
       - "26659:26656"
+    entrypoint: ["/app/entrypoint_core.sh"]
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node2
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../cosmwasm-contracts:/code
     networks:
       - cosmos-network
     healthcheck:
@@ -142,12 +148,15 @@ services:
     ports:
       - "26667:26657"
       - "26666:26656"
+    entrypoint: ["/app/entrypoint_core.sh"]
     environment:
       - NODE_ROLE=verifier
       - NODE_ID=node3
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../cosmwasm-contracts:/code
     networks:
       - cosmos-network
     healthcheck:

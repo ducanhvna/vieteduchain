@@ -8,7 +8,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o cosmos-permissioned-network ./cmd/main.go
 
 FROM alpine:latest
-WORKDIR /root/
+WORKDIR /app
 COPY --from=builder /app/cosmos-permissioned-network ./cosmos-permissioned-network
-RUN chmod +x ./cosmos-permissioned-network
+COPY ../deploy/entrypoint_core.sh ./entrypoint_core.sh
+RUN chmod +x ./cosmos-permissioned-network && chmod +x ./entrypoint_core.sh
 CMD ["./cosmos-permissioned-network"]

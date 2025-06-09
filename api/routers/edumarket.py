@@ -11,7 +11,12 @@ router = APIRouter()
 EDUMARKET_CONTRACT_ADDR = os.getenv("EDUMARKET_CONTRACT_ADDR", "edumarket_contract_address")
 CORE_REST_URL = os.getenv("CORE_REST_URL", "http://core:26657")
 
+def is_contract_addr_invalid(addr: str):
+    return not addr or addr.endswith('_contract_address') or addr == ''
+
 def wasm_query(contract_addr: str, query_msg: dict):
+    if is_contract_addr_invalid(contract_addr):
+        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/smart/{json.dumps(query_msg)}"
     resp = requests.get(url)
     if resp.status_code != 200:
@@ -19,6 +24,8 @@ def wasm_query(contract_addr: str, query_msg: dict):
     return resp.json()["data"] if "data" in resp.json() else resp.json()
 
 def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):
+    if is_contract_addr_invalid(contract_addr):
+        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     url = f"{CORE_REST_URL}/wasm/v1/contract/{contract_addr}/execute"
     payload = {"sender": sender, "msg": exec_msg}
     resp = requests.post(url, json=payload)
@@ -47,13 +54,31 @@ class BuyCourseNFTRequest(BaseModel):
 
 @router.post("/edumarket/mint")
 def mint_course_nft(req: MintCourseNFTRequest):
-    exec_msg = {"mint_course_nft": req.dict()}
-    return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
+    try:
+        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
+            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        exec_msg = {"mint_course_nft": req.dict()}
+        return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+    except Exception as e:
+        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
+            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edumarket/buy")
 def buy_course_nft(req: BuyCourseNFTRequest):
-    exec_msg = {"buy_course_nft": req.dict()}
-    return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
+    try:
+        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
+            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        exec_msg = {"buy_course_nft": req.dict()}
+        return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg)
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+    except Exception as e:
+        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
+            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/edumarket/{id}")
 def get_course_nft(id: str):
