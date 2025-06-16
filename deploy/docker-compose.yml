@@ -20,7 +20,7 @@ services:
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ./deploy/contract_addresses:/app/contract_addresses
+      - ./deploy/contract_addresses_node1:/app/contract_addresses
     entrypoint: ["/app/entrypoint_core.sh"]
 
   api:
@@ -32,7 +32,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../deploy/contract_addresses_node1:/app/contract_addresses
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node1
@@ -83,7 +83,7 @@ services:
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ./deploy/contract_addresses:/app/contract_addresses
+      - ./deploy/contract_addresses_node2:/app/contract_addresses
     networks:
       - cosmos-network
     healthcheck:
@@ -104,7 +104,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../deploy/contract_addresses_node2:/app/contract_addresses
     environment:
       - NODE_ROLE=issuer
       - NODE_ID=node2
@@ -155,7 +155,7 @@ services:
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ./deploy/contract_addresses:/app/contract_addresses
+      - ./deploy/contract_addresses_node3:/app/contract_addresses
     networks:
       - cosmos-network
     healthcheck:
@@ -176,7 +176,7 @@ services:
     volumes:
       - ../api:/app
       - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
+      - ../deploy/contract_addresses_node3:/app/contract_addresses
     environment:
       - NODE_ROLE=verifier
       - NODE_ID=node3
