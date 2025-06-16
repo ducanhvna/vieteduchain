@@ -1,16 +1,33 @@
 FROM golang:1.22.1-alpine3.19 AS builder
+# TODO: Cân nhắc cập nhật base image lên phiên bản mới hơn khi có thể để giảm lỗ hổng bảo mật
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+COPY core/go.mod core/go.sum ./
 RUN go mod tidy && go mod download
-COPY . .
+COPY core/. .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o cosmos-permissioned-network ./cmd/main.go
 
 FROM alpine:3.19.4
+# TODO: Cân nhắc cập nhật base image lên phiên bản mới hơn khi có thể để giảm lỗ hổng bảo mật
 WORKDIR /app
 RUN apk update && apk upgrade && apk add --no-cache ca-certificates tzdata
 COPY --from=builder /app/cosmos-permissioned-network ./cosmos-permissioned-network
-COPY entrypoint_core.sh ./entrypoint_core.sh
+COPY --chmod=755 deploy/entrypoint_core.sh ./entrypoint_core.sh
 RUN chmod +x ./cosmos-permissioned-network && chmod +x ./entrypoint_core.sh
+
+# Copy contract source code for building WASM inside core image
+COPY cosmwasm-contracts/cosmwasm-contracts /code/cosmwasm-contracts
+
+# Build WASM contracts (nếu cần, ví dụ build eduadmission contract)
+RUN apk add --no-cache bash curl make gcc musl-dev openssl-dev git rust cargo && \
+    curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+    source $HOME/.cargo/env && \
+    rustup target add wasm32-unknown-unknown && \
+    cd /code/cosmwasm-contracts/eduadmission && \
+    cargo build --release --target wasm32-unknown-unknown && \
+    mkdir -p /app/wasm_artifacts && \
+    find /code -name 'eduadmission.wasm' -exec cp {} /app/wasm_artifacts/ \;
+
 CMD ["./entrypoint_core.sh"]
+# Nếu muốn tự động ghi địa chỉ contract ra file, hãy thêm logic vào entrypoint_core.sh hoặc script riêng

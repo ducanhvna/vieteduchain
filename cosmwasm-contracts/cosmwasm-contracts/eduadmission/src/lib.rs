@@ -1,8 +1,7 @@
 // Minimal contract entry for CosmWasm
 use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json};
-use serde::{Serialize, Deserialize};
-use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use serde::{Serialize, Deserialize};
 use schemars::JsonSchema;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -82,7 +81,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdRe
     }
 }
 
-fn mint_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult<Response> {
+fn mint_seat_nft(deps: DepsMut, _info: MessageInfo, seat_id: String) -> StdResult<Response> {
     let key = seat_key(&seat_id);
     if deps.storage.get(&key).is_some() {
         return Err(cosmwasm_std::StdError::generic_err("Seat already exists"));
@@ -92,7 +91,7 @@ fn mint_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult
     Ok(Response::new().add_attribute("action", "mint_seat_nft").add_attribute("seat_id", seat_id))
 }
 
-fn burn_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult<Response> {
+fn burn_seat_nft(deps: DepsMut, _info: MessageInfo, seat_id: String) -> StdResult<Response> {
     let key = seat_key(&seat_id);
     let seat_bin = deps.storage.get(&key).ok_or(cosmwasm_std::StdError::not_found("SeatNFT"))?;
     let mut seat: SeatNFT = from_json(&Binary(seat_bin))?;
@@ -104,14 +103,14 @@ fn burn_seat_nft(deps: DepsMut, info: MessageInfo, seat_id: String) -> StdResult
     Ok(Response::new().add_attribute("action", "burn_seat_nft").add_attribute("seat_id", seat_id))
 }
 
-fn push_score(deps: DepsMut, info: MessageInfo, candidate_hash: String, score: u32) -> StdResult<Response> {
+fn push_score(deps: DepsMut, _info: MessageInfo, candidate_hash: String, score: u32) -> StdResult<Response> {
     let key = score_key(&candidate_hash);
     let score_rec = CandidateScore { candidate_hash: candidate_hash.clone(), score };
     deps.storage.set(&key, &to_json_binary(&score_rec)?);
     Ok(Response::new().add_attribute("action", "push_score").add_attribute("candidate_hash", candidate_hash))
 }
 
-fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
+fn run_matching(deps: DepsMut, _env: Env) -> StdResult<Response> {
     // Simple matching: assign top scores to available seats
     use cosmwasm_std::Order;
     let mut scores: Vec<CandidateScore> = vec![];
@@ -119,24 +118,19 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
     let mut results: Vec<AdmissionResult> = vec![];
     let score_prefix = SCORE_PREFIX.as_bytes();
     let seat_prefix = SEAT_PREFIX.as_bytes();
-    let result_prefix = RESULT_PREFIX.as_bytes();
     // Collect all scores
     let score_iter = deps.storage.range(Some(score_prefix), None, Order::Ascending);
-    for item in score_iter {
-        if let Ok((_, v)) = item {
-            if let Ok(s) = from_json::<CandidateScore>(&Binary(v)) {
-                scores.push(s);
-            }
+    for (_, v) in score_iter {
+        if let Ok(s) = from_json::<CandidateScore>(&Binary(v)) {
+            scores.push(s);
         }
     }
     // Collect all available seats
     let seat_iter = deps.storage.range(Some(seat_prefix), None, Order::Ascending);
-    for item in seat_iter {
-        if let Ok((_, v)) = item {
-            if let Ok(seat) = from_json::<SeatNFT>(&Binary(v)) {
-                if !seat.burned && seat.owner.is_none() {
-                    seats.push(seat);
-                }
+    for (_, v) in seat_iter {
+        if let Ok(seat) = from_json::<SeatNFT>(&Binary(v)) {
+            if !seat.burned && seat.owner.is_none() {
+                seats.push(seat);
             }
         }
     }
@@ -145,7 +139,7 @@ fn run_matching(deps: DepsMut, env: Env) -> StdResult<Response> {
     // Assign seats
     for (i, candidate) in scores.iter().enumerate() {
         let seat = seats.get(i);
-        let mut result = AdmissionResult {
+        let result = AdmissionResult {
             candidate_hash: candidate.candidate_hash.clone(),
             seat_id: seat.map(|s| s.id.clone()),
             admitted: seat.is_some(),
@@ -189,11 +183,9 @@ pub fn query(deps: Deps, _env: Env, msg: Binary) -> StdResult<Binary> {
             let mut results: Vec<AdmissionResult> = vec![];
             let result_prefix = RESULT_PREFIX.as_bytes();
             let result_iter = deps.storage.range(Some(result_prefix), None, Order::Ascending);
-            for item in result_iter {
-                if let Ok((_, v)) = item {
-                    if let Ok(r) = from_json::<AdmissionResult>(&Binary(v)) {
-                        results.push(r);
-                    }
+            for (_, v) in result_iter {
+                if let Ok(r) = from_json::<AdmissionResult>(&Binary(v)) {
+                    results.push(r);
                 }
             }
             to_json_binary(&results)

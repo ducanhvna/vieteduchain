@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Entrypoint script for core container: auto-deploy contracts if needed, then start core service
 
 set -e
@@ -29,6 +29,7 @@ deploy_contract() {
 
 # Check and deploy contracts if needed
 changed=0
+env_exports=""
 for entry in "${CONTRACTS[@]}"; do
   key="${entry%%:*}"
   subdir="${entry##*:}"
@@ -45,15 +46,31 @@ for entry in "${CONTRACTS[@]}"; do
     echo "[Entrypoint] $key deployed at $new_addr"
     # Update JSON file
     jq ".${key} = \"$new_addr\"" "$CONTRACT_ADDR_FILE" > "$CONTRACT_ADDR_FILE.tmp" && mv "$CONTRACT_ADDR_FILE.tmp" "$CONTRACT_ADDR_FILE"
+    addr="$new_addr"
     changed=1
   else
     echo "[Entrypoint] $key already set: $addr"
   fi
+  # Prepare env export string
+  env_exports+="export ${key}=$addr\n"
 done
 
 if [[ $changed -eq 1 ]]; then
   echo "[Entrypoint] Updated contract addresses:"
   cat "$CONTRACT_ADDR_FILE"
+fi
+
+echo "[Entrypoint] Contract addresses summary:"  # Thông báo tổng hợp
+for entry in "${CONTRACTS[@]}"; do
+  key="${entry%%:*}"
+  addr=$(jq -r ".${key}" "$CONTRACT_ADDR_FILE")
+  echo "  $key: $addr"
+done
+
+# Export contract addresses to environment
+if [[ -n "$env_exports" ]]; then
+  echo -e "$env_exports" > /app/contract_addresses/contract_env.sh
+  source /app/contract_addresses/contract_env.sh
 fi
 
 echo "[Entrypoint] Starting core service..."

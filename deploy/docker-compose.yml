@@ -1,8 +1,8 @@
 services:
   core:
     build:
-      context: ../core
-      dockerfile: ../deploy/Dockerfile.core
+      context: ..
+      dockerfile: deploy/Dockerfile.core
     ports:
       - "26657:26657"
       - "26656:26656"
@@ -19,12 +19,9 @@ services:
       - NODE_ID=node1
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
-      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
-      - ../cosmwasm-contracts:/code
+      - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ./deploy/contract_addresses:/app/contract_addresses
     entrypoint: ["/app/entrypoint_core.sh"]
-    depends_on:
-      - wasm-builder
 
   api:
     build:
@@ -51,7 +48,6 @@ services:
       retries: 5
     depends_on:
       - core
-      - wasm-builder
 
   ui:
     build:
@@ -75,8 +71,8 @@ services:
 
   core1:
     build:
-      context: ../core
-      dockerfile: ../deploy/Dockerfile.core
+      context: ..
+      dockerfile: deploy/Dockerfile.core
     ports:
       - "26658:26657"
       - "26659:26656"
@@ -86,9 +82,8 @@ services:
       - NODE_ID=node2
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
-      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
-      - ../cosmwasm-contracts:/code
+      - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ./deploy/contract_addresses:/app/contract_addresses
     networks:
       - cosmos-network
     healthcheck:
@@ -99,7 +94,6 @@ services:
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
       - core
-      - wasm-builder
 
   api1:
     build:
@@ -126,7 +120,6 @@ services:
       retries: 5
     depends_on:
       - core1
-      - wasm-builder
 
   ui1:
     build:
@@ -150,8 +143,8 @@ services:
 
   core2:
     build:
-      context: ../core
-      dockerfile: ../deploy/Dockerfile.core
+      context: ..
+      dockerfile: deploy/Dockerfile.core
     ports:
       - "26667:26657"
       - "26666:26656"
@@ -161,9 +154,8 @@ services:
       - NODE_ID=node3
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
-      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-      - ../deploy/contract_addresses:/app/contract_addresses
-      - ../cosmwasm-contracts:/code
+      - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ./deploy/contract_addresses:/app/contract_addresses
     networks:
       - cosmos-network
     healthcheck:
@@ -174,7 +166,6 @@ services:
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
       - core
-      - wasm-builder
 
   api2:
     build:
@@ -201,7 +192,6 @@ services:
       retries: 5
     depends_on:
       - core2
-      - wasm-builder
 
   ui2:
     build:
@@ -222,16 +212,6 @@ services:
       retries: 5
     depends_on:
       - api2
-
-  wasm-builder:
-    build:
-      context: ../cosmwasm-contracts
-      dockerfile: Dockerfile
-    volumes:
-      - ../cosmwasm-contracts:/code
-    networks:
-      - cosmos-network
-    command: ["tail", "-f", "/dev/null"]
 
 networks:
   cosmos-network:

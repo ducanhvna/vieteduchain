@@ -1,5 +1,6 @@
 # Dockerfile for building all CosmWasm contracts and exporting .wasm files
-FROM rust:latest as builder
+FROM rust:latest AS builder
+# TODO: Cân nhắc chỉ định phiên bản rust cụ thể và cập nhật thường xuyên để giảm lỗ hổng bảo mật
 
 WORKDIR /code
 
@@ -29,5 +30,6 @@ done
 
 # Final image (optional, if you want a minimal image with only artifacts)
 FROM alpine:3.18
+# TODO: Cân nhắc cập nhật base image lên phiên bản mới hơn khi có thể để giảm lỗ hổng bảo mật
 WORKDIR /artifacts
 COPY --from=builder /code/cosmwasm-contracts/*/artifacts/*.wasm ./
