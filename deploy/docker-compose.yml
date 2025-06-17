@@ -49,25 +49,25 @@ services:
     depends_on:
       - core
 
-  ui:
-    build:
-      context: ../ui
-      dockerfile: Dockerfile
-    ports:
-      - "3179:3000"
-    command: sh -c "npm install && npm run build && npm run start"
-    environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8279
-      - NODE_ID=node1
-    networks:
-      - cosmos-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    depends_on:
-      - api
+  # ui:
+  #   build:
+  #     context: ../ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3179:3000"
+  #   command: sh -c "npm install && npm run build && npm run start"
+  #   environment:
+  #     - NEXT_PUBLIC_API_BASE_URL=http://localhost:8279
+  #     - NODE_ID=node1
+  #   networks:
+  #     - cosmos-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #   depends_on:
+  #     - api
 
   core1:
     build:
@@ -141,57 +141,57 @@ services:
   #   depends_on:
   #     - api1
 
-  # core2:
-  #   build:
-  #     context: ..
-  #     dockerfile: deploy/Dockerfile.core
-  #   ports:
-  #     - "26667:26657"
-  #     - "26666:26656"
-  #   entrypoint: ["/app/entrypoint_core.sh"]
-  #   environment:
-  #     - NODE_ROLE=verifier
-  #     - NODE_ID=node3
-  #     - INITIAL_NODES_FILE=/app/config/initial_nodes.json
-  #   volumes:
-  #     - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-  #     - ./deploy/contract_addresses_node3:/app/contract_addresses
-  #   networks:
-  #     - cosmos-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #   command: ["./cosmos-permissioned-network", "start"]
-  #   depends_on:
-  #     - core
+  core2:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.core
+    ports:
+      - "26667:26657"
+      - "26666:26656"
+    entrypoint: ["/app/entrypoint_core.sh"]
+    environment:
+      - NODE_ROLE=verifier
+      - NODE_ID=node3
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+    volumes:
+      - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ./deploy/contract_addresses_node3:/app/contract_addresses
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:26657/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    command: ["./cosmos-permissioned-network", "start"]
+    depends_on:
+      - core
 
-  # api2:
-  #   build:
-  #     context: ../api
-  #     dockerfile: ../deploy/Dockerfile.api
-  #   ports:
-  #     - "8289:8000"
-  #   volumes:
-  #     - ../api:/app
-  #     - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
-  #     - ../deploy/contract_addresses_node3:/app/contract_addresses
-  #   environment:
-  #     - NODE_ROLE=verifier
-  #     - NODE_ID=node3
-  #     - INITIAL_NODES_FILE=/app/config/initial_nodes.json
-  #     - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
-  #     - CORE_REST_URL=http://core2:26657
-  #   networks:
-  #     - cosmos-network
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #   depends_on:
-  #     - core2
+  api2:
+    build:
+      context: ../api
+      dockerfile: ../deploy/Dockerfile.api
+    ports:
+      - "8289:8000"
+    volumes:
+      - ../api:/app
+      - ../deploy/config/initial_nodes.json:/app/config/initial_nodes.json
+      - ../deploy/contract_addresses_node3:/app/contract_addresses
+    environment:
+      - NODE_ROLE=verifier
+      - NODE_ID=node3
+      - INITIAL_NODES_FILE=/app/config/initial_nodes.json
+      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - CORE_REST_URL=http://core2:26657
+    networks:
+      - cosmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - core2
 
   # ui2:
   #   build:
