@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import React, { Suspense } from "react";
-import { Refine, GitHubBanner } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { DevtoolsProvider } from "@providers/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { ThemedTitleV2, useNotificationProvider } from "@refinedev/antd";
@@ -34,7 +34,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Suspense>
-          <GitHubBanner />
           <RefineKbarProvider>
             <AntdRegistry>
               <ColorModeContextProvider defaultMode={defaultMode}>
