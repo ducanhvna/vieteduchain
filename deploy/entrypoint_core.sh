@@ -1,11 +1,18 @@
 #!/bin/sh
 # Entrypoint script for core container: auto-deploy contracts if needed, then start core service
 
-set -e
+# Do not exit on error - we want the container to keep running
+set +e 
+
+# Log all commands executed
+set -x
 
 CONTRACT_ADDR_FILE="/app/contract_addresses/contract_addresses.json"
 WASM_DIR="/code/cosmwasm-contracts"
 CORE_CMD="./cosmos-permissioned-network start"
+
+# Create contract_addresses directory if it doesn't exist
+mkdir -p /app/contract_addresses
 
 # List of contract keys và subdir
 CONTRACTS="EDUADMISSION_CONTRACT_ADDR:eduadmission
@@ -100,6 +107,8 @@ fi
 cp "$CONTRACT_ADDR_FILE" /app/contract_addresses/contract_addresses.json
 chmod 666 /app/contract_addresses/contract_addresses.json
 echo "[Entrypoint] Copied contract_addresses.json to /app/contract_addresses/contract_addresses.json with permissions 666"
+chmod 666 /app/contract_addresses/contract_addresses.json
+echo "[Entrypoint] Copied contract_addresses.json to /app/contract_addresses/contract_addresses.json with permissions 666"
 
 # Nếu NODE_ID, vẫn copy ra contract_addresses_node$NODE_ID để backward compatible (nếu cần)
 if [ -n "$NODE_ID" ]; then
@@ -132,4 +141,46 @@ done
 chmod 755 /app/contract_addresses/contract_env.sh
 
 echo "[Entrypoint] Starting core service..."
-exec $CORE_CMD
+
+# Make sure the contract addresses are readable
+chmod -R 777 /app/contract_addresses
+
+# Start the core service in the background
+echo "[Entrypoint] Running: $CORE_CMD"
+$CORE_CMD &
+CORE_PID=$!
+
+# Signal handler for graceful shutdown
+trap 'kill $CORE_PID 2>/dev/null || true; echo "Container stopping..."; exit 0' TERM INT
+
+echo "[Entrypoint] Core service started with PID $CORE_PID"
+echo "[Entrypoint] Container will remain running to keep files accessible"
+
+# Log a message every 60 seconds to show container is still alive
+while true; do
+  # Check if contract_addresses.json exists and has been updated
+  if [ -f "$CONTRACT_ADDR_FILE" ]; then
+    echo "[Entrypoint] Contract addresses at $(date):"
+    cat "$CONTRACT_ADDR_FILE"
+    
+    # Copy the file to host-mounted volume again to ensure it's synchronized
+    cp -f "$CONTRACT_ADDR_FILE" /app/contract_addresses/contract_addresses.json
+    
+    # Add extra permission to ensure host can read it
+    chmod 666 /app/contract_addresses/contract_addresses.json
+    
+    # Copy to node-specific directory if NODE_ID is set
+    if [ -n "$NODE_ID" ]; then
+      VOLUME_DIR="/app/contract_addresses_node$NODE_ID"
+      mkdir -p "$VOLUME_DIR"
+      cp -f "$CONTRACT_ADDR_FILE" "$VOLUME_DIR/contract_addresses.json"
+      chmod 666 "$VOLUME_DIR/contract_addresses.json"
+      echo "[Entrypoint] Updated $VOLUME_DIR/contract_addresses.json"
+    fi
+  else
+    echo "[Entrypoint] Contract addresses file not found at $CONTRACT_ADDR_FILE"
+  fi
+  
+  # Sleep for 60 seconds
+  sleep 60
+done
