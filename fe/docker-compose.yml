@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  refine:
+    container_name: vietedu-refine
+    build: .
+    ports:
+      - "3580:3000"  # Chuyển từ 3000 sang 3002
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=production
