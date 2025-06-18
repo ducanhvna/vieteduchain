@@ -1,0 +1,36 @@
+# Configuration settings for the blockchain node
+
+[client]
+# The address of the RPC server
+rpc_address = "tcp://localhost:26657"
+
+[log]
+# Log level for the application
+level = "info"
+
+[api]
+# Enable the REST API
+enable = true
+# The port for the REST API
+address = "tcp://localhost:1317"
+
+[database]
+# Database settings
+type = "leveldb"
+path = "data"
+
+[consensus]
+# Consensus settings
+timeout_commit = "1s"
+max_block_size = "1048576"
+
+[p2p]
+# Peer-to-peer settings
+persistent_peers = ""
+seeds = ""
+
+[telemetry]
+# Telemetry settings
+enabled = true
+provider = "prometheus"
+address = "localhost:9090"

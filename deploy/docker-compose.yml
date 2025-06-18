@@ -1,12 +1,15 @@
+version: '3.9'
+
 services:
   core:
     build:
       context: ..
       dockerfile: deploy/Dockerfile.core
     ports:
-      - "26657:26657"
-      - "26656:26656"
-      - "1317:1317"
+      - "26656:26656"  # P2P
+      - "26657:26657"  # RPC
+      - "1317:1317"    # REST API
+      - "9090:9090"    # gRPC
     networks:
       - cosmos-network
     healthcheck:
@@ -20,9 +23,9 @@ services:
       - NODE_ID=node1
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
     volumes:
+      - ./data/config:/root/.wasmd/config
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
       - ./deploy/contract_addresses_node1:/app/contract_addresses
-      - ./deploy/config/app.toml:/root/.appd/config/app_host.toml
     entrypoint: ["/app/entrypoint_core.sh"]
   api:
     env_file:

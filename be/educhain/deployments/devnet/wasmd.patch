@@ -1,0 +1,22 @@
+--- x/wasm/keeper/test_common.go.orig	2023-11-13 12:00:00
++++ x/wasm/keeper/test_common.go	2023-11-13 12:01:00
+@@ -383,7 +383,7 @@
+ 
+ 	keeper := NewKeeper(
+ 		appCodec,
+-		runtime.NewKVStoreService(keys[types.StoreKey]),
++		keys[types.StoreKey],
+ 		accountKeeper,
+ 		bankKeeper,
+ 		stakingKeeper,
+--- x/wasm/keeper/genesis_test.go.orig	2023-11-13 12:00:00
++++ x/wasm/keeper/genesis_test.go	2023-11-13 12:01:00
+@@ -684,7 +684,7 @@
+ 
+ 	srcKeeper := NewKeeper(
+ 		encodingConfig.Codec,
+-		runtime.NewKVStoreService(keyWasm),
++		keyWasm,
+ 		authkeeper.AccountKeeper{},
+ 		&bankkeeper.BaseKeeper{},
+ 		stakingkeeper.Keeper{},

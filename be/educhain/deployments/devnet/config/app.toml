@@ -1,0 +1,37 @@
+# Application configuration for the EduChain blockchain
+
+[application]
+name = "EduChain"
+version = "1.0.0"
+chain_id = "educhain-devnet"
+
+[api]
+enable = true
+address = "tcp://0.0.0.0:1317"
+
+[grpc]
+enable = true
+address = "0.0.0.0:9090"
+
+[log]
+level = "info"
+file = "educhain.log"
+
+[database]
+type = "leveldb"
+path = "data/educhain"
+
+[consensus]
+timeout_commit = "1s"
+max_block_size = "1048576"
+
+[modules]
+enabled = ["eduid", "educert", "edupay", "researchledger", "eduadmission"]
+
+[tx]
+max_bytes = "1048576"
+timeout = "5s"
+
+[genesis]
+time = "2023-01-01T00:00:00Z"
+initial_balance = "100000000stake"

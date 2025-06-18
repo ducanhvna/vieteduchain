@@ -1,0 +1,26 @@
+# Configuration for IBC Relay Client
+
+# This file contains the configuration settings for the IBC relay client.
+# Adjust the parameters as necessary for your specific deployment.
+
+[ibc]
+# The address of the source blockchain
+source_chain_id = "source-chain-id"
+source_rpc = "http://localhost:26657"
+
+# The address of the destination blockchain
+destination_chain_id = "destination-chain-id"
+destination_rpc = "http://localhost:26657"
+
+# The IBC port and channel identifiers
+port_id = "transfer"
+channel_id = "channel-0"
+
+# Timeouts for IBC operations
+timeout_height = "0-0"
+timeout_timestamp = "0"
+
+# Enable or disable logging
+log_level = "info"
+
+# Additional settings can be added as needed.
