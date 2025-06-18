@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Optional, List
 import os
 import requests
 import json
+import qrcode
+from io import BytesIO
+import base64
 
 router = APIRouter()
 
@@ -48,6 +51,47 @@ class IssueVCRequest(BaseModel):
 class RevokeVCRequest(BaseModel):
     hash: str
 
+# NFT related models
+class MintNFTRequest(BaseModel):
+    token_id: str
+    credential_hash: str
+    recipient: str
+    metadata_uri: str
+
+class TransferNFTRequest(BaseModel):
+    token_id: str
+    recipient: str
+
+class BurnNFTRequest(BaseModel):
+    token_id: str
+
+# School node related models
+class RegisterSchoolNodeRequest(BaseModel):
+    did: str
+    name: str
+    service_endpoint: str
+    node_id: str
+
+class UpdateSchoolNodeRequest(BaseModel):
+    did: str
+    name: Optional[str] = None
+    service_endpoint: Optional[str] = None
+    active: Optional[bool] = None
+
+class DeactivateSchoolNodeRequest(BaseModel):
+    did: str
+
+# QR code related models
+class QRCodeRequest(BaseModel):
+    data_type: str  # "nft" or "did"
+    id: str
+
+class QRCodeResponse(BaseModel):
+    data_type: str
+    id: str
+    verify_url: str
+    qr_image: str  # Base64 encoded image
+
 @router.post("/edu-cert/issue")
 def issue_vc(req: IssueVCRequest, request: Request):
     try:
@@ -83,3 +127,160 @@ def is_revoked(hash: str):
 def get_credential(hash: str):
     query_msg = {"get_credential": {"hash": hash}}
     return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+# NFT related endpoints
+@router.post("/edu-cert/nft/mint")
+def mint_credential_nft(req: MintNFTRequest, request: Request):
+    """Mint a new NFT for a credential"""
+    try:
+        exec_msg = {"mint_credential_nft": {
+            "token_id": req.token_id,
+            "credential_hash": req.credential_hash,
+            "recipient": req.recipient,
+            "metadata_uri": req.metadata_uri
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/edu-cert/nft/transfer")
+def transfer_credential_nft(req: TransferNFTRequest, request: Request):
+    """Transfer an NFT to a new owner"""
+    try:
+        exec_msg = {"transfer_credential_nft": {
+            "token_id": req.token_id,
+            "recipient": req.recipient
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/edu-cert/nft/burn")
+def burn_credential_nft(req: BurnNFTRequest, request: Request):
+    """Burn (destroy) an NFT"""
+    try:
+        exec_msg = {"burn_credential_nft": {
+            "token_id": req.token_id
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/edu-cert/nft/{token_id}")
+def get_credential_nft(token_id: str):
+    """Get details about a specific NFT"""
+    query_msg = {"get_credential_nft": {"token_id": token_id}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+@router.get("/edu-cert/nft/owner/{owner}")
+def get_nfts_by_owner(owner: str):
+    """Get all NFTs owned by a specific address"""
+    query_msg = {"get_nfts_by_owner": {"owner": owner}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+@router.get("/edu-cert/nft/issuer/{issuer}")
+def get_nfts_by_issuer(issuer: str):
+    """Get all NFTs issued by a specific address"""
+    query_msg = {"get_nfts_by_issuer": {"issuer": issuer}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+# School node related endpoints
+@router.post("/edu-cert/school/register")
+def register_school_node(req: RegisterSchoolNodeRequest, request: Request):
+    """Register a new school as a node in the network"""
+    try:
+        exec_msg = {"register_school_node": {
+            "did": req.did,
+            "name": req.name,
+            "service_endpoint": req.service_endpoint,
+            "node_id": req.node_id
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/edu-cert/school/update")
+def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
+    """Update an existing school node"""
+    try:
+        exec_msg = {"update_school_node": {
+            "did": req.did,
+            "name": req.name,
+            "service_endpoint": req.service_endpoint,
+            "active": req.active
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/edu-cert/school/deactivate")
+def deactivate_school_node(req: DeactivateSchoolNodeRequest, request: Request):
+    """Deactivate a school node"""
+    try:
+        exec_msg = {"deactivate_school_node": {
+            "did": req.did
+        }}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/edu-cert/school/{did}")
+def get_school_node(did: str):
+    """Get details about a specific school node"""
+    query_msg = {"get_school_node": {"did": did}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+@router.get("/edu-cert/school/list")
+def list_school_nodes(active_only: Optional[bool] = None):
+    """List all school nodes, optionally filtering for active nodes only"""
+    query_msg = {"list_school_nodes": {"active_only": active_only}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+# Transaction history
+@router.get("/edu-cert/transactions")
+def get_transaction_history(limit: Optional[int] = None):
+    """Get transaction history from the ledger"""
+    query_msg = {"get_transaction_history": {"limit": limit}}
+    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+
+# QR code generation
+@router.post("/edu-cert/qrcode")
+def generate_qr_code(req: QRCodeRequest):
+    """Generate a QR code for a DID or NFT"""
+    try:
+        # Get the QR code data from the contract
+        query_msg = {"generate_qr_code_data": {"data_type": req.data_type, "id": req.id}}
+        qr_data = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+        
+        # Generate QR code image
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECTION_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_data["verify_url"])
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert PIL image to base64 string
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        
+        # Return the QR code data and image
+        return QRCodeResponse(
+            data_type=qr_data["data_type"],
+            id=qr_data["id"],
+            verify_url=qr_data["verify_url"],
+            qr_image=img_str
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
