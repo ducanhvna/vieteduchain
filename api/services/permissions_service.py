@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from typing import List, Dict
-from api.models.node import Node
+from models.node import Node
 import json
 import os
 

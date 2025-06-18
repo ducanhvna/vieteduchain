@@ -1408,3 +1408,207 @@
 2025-06-18 13:27:28,211 - DataGenerator - INFO - Starting data generation for ViEduChain-Hino - Count: 2, API: http://localhost:8279/api
 2025-06-18 13:27:32,255 - DataGenerator - ERROR - API Exception: GET http://localhost:8279/api/health - HTTPConnectionPool(host='localhost', port=8279): Max retries exceeded with url: /api/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x000002262FCF4EC0>: Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it'))
 2025-06-18 13:27:32,255 - DataGenerator - ERROR - API health check failed. Please ensure the API is running.
+2025-06-18 13:31:44,088 - DataGenerator - INFO - Loaded existing data from data.json
+2025-06-18 13:31:44,088 - DataGenerator - INFO - Starting data generation for ViEduChain-Hino - Count: 2, API: http://localhost:8279/api
+2025-06-18 13:31:44,112 - DataGenerator - INFO - API Success: GET http://localhost:8279/api/health
+2025-06-18 13:31:44,112 - DataGenerator - INFO - Generating nodes...
+2025-06-18 13:31:44,112 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 13:31:44,123 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 13:31:44,124 - DataGenerator - INFO - Generating DIDs...
+2025-06-18 13:31:44,146 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":""}
+2025-06-18 13:31:44,157 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":""}
+2025-06-18 13:31:44,157 - DataGenerator - INFO - Generating certificates...
+2025-06-18 13:31:44,163 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 13:31:44,165 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 13:31:44,165 - DataGenerator - INFO - Generating course completion records...
+2025-06-18 13:31:44,171 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 13:31:44,174 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 13:31:44,174 - DataGenerator - INFO - Generating degrees...
+2025-06-18 13:31:44,176 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 13:31:44,186 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 13:31:44,186 - DataGenerator - INFO - Generating wallets...
+2025-06-18 13:31:44,192 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":""}
+2025-06-18 13:31:44,202 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":""}
+2025-06-18 13:31:44,202 - DataGenerator - INFO - Generating transfers between wallets...
+2025-06-18 13:31:44,212 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":""}
+2025-06-18 13:31:44,212 - DataGenerator - INFO - Transferred 99 from 0xcbdc5cefa17c7bae2d0ffcf95d6d5a842734d129 to 0x60175c0d89db2de616aba1b3543cae5d00cff534
+2025-06-18 13:31:44,217 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":""}
+2025-06-18 13:31:44,217 - DataGenerator - INFO - Transferred 42 from 0xcbdc5cefa17c7bae2d0ffcf95d6d5a842734d129 to 0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3
+2025-06-18 13:31:44,217 - DataGenerator - INFO - Generating NFTs...
+2025-06-18 13:31:44,224 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":""}
+2025-06-18 13:31:44,232 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":""}
+2025-06-18 13:31:44,233 - DataGenerator - INFO - Generating NFT purchases...
+2025-06-18 13:31:44,237 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 13:31:44,237 - DataGenerator - INFO - NFT nft-001 purchased by 0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3 for 525 tokens
+2025-06-18 13:31:44,244 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 13:31:44,244 - DataGenerator - INFO - NFT nft-001 purchased by 0xcbdc5cefa17c7bae2d0ffcf95d6d5a842734d129 for 615 tokens
+2025-06-18 13:31:44,244 - DataGenerator - INFO - Generating admission data...
+2025-06-18 13:31:44,254 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":""}
+2025-06-18 13:31:44,262 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":""}
+2025-06-18 13:31:44,268 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 13:31:44,274 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 13:31:44,281 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/run_matching - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 13:31:44,281 - DataGenerator - INFO - Ran admission matching algorithm
+2025-06-18 13:31:44,281 - DataGenerator - INFO - Generating research data...
+2025-06-18 13:31:44,285 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 13:31:44,293 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 13:31:44,293 - DataGenerator - INFO - Saved data to data.json
+2025-06-18 13:31:44,293 - DataGenerator - INFO - Data generation completed successfully!
+2025-06-18 14:49:09,454 - DataGenerator - INFO - Loaded existing data from data.json
+2025-06-18 14:49:09,455 - DataGenerator - INFO - Starting data generation for ViEduChain-Hino - Count: 10, API: http://localhost:8279/api
+2025-06-18 14:49:09,484 - DataGenerator - INFO - API Success: GET http://localhost:8279/api/health
+2025-06-18 14:49:09,485 - DataGenerator - INFO - Generating nodes...
+2025-06-18 14:49:09,490 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,495 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,502 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,530 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,539 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,543 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,546 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,553 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,560 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,568 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/nodeinfo/register - Status 500: {"detail":""}
+2025-06-18 14:49:09,569 - DataGenerator - INFO - Generating DIDs...
+2025-06-18 14:49:09,582 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,592 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,598 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,609 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,616 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,627 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,635 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,644 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,655 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,661 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edu-id/register - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,662 - DataGenerator - INFO - Generating certificates...
+2025-06-18 14:49:09,668 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,674 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,677 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,681 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,686 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,693 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,698 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,705 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,710 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,714 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_certificate - Status 500: {"detail":""}
+2025-06-18 14:49:09,714 - DataGenerator - INFO - Generating course completion records...
+2025-06-18 14:49:09,720 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,726 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,729 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,732 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,740 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,745 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,748 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,755 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,760 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,764 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/create_course_completion - Status 500: {"detail":""}
+2025-06-18 14:49:09,764 - DataGenerator - INFO - Generating degrees...
+2025-06-18 14:49:09,771 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,777 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,781 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,785 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,793 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,797 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,801 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,809 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,813 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,816 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/educert/issue_degree - Status 500: {"detail":""}
+2025-06-18 14:49:09,816 - DataGenerator - INFO - Generating wallets...
+2025-06-18 14:49:09,827 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,839 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,850 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,864 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,878 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,891 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,899 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,910 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,920 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,935 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,938 - DataGenerator - INFO - Generating transfers between wallets...
+2025-06-18 14:49:09,956 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,957 - DataGenerator - INFO - Transferred 95 from 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 to 0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c
+2025-06-18 14:49:09,979 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:09,980 - DataGenerator - INFO - Transferred 73 from 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 to 0x08f9010e1246fd40fcc6e9fcecfc9a3cbaff5259
+2025-06-18 14:49:10,000 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,003 - DataGenerator - INFO - Transferred 98 from 0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c to 0xdb8b40c0af226b4bd8eeaa4b526b78ebfd1ae9cb
+2025-06-18 14:49:10,021 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,022 - DataGenerator - INFO - Transferred 77 from 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 to 0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3
+2025-06-18 14:49:10,036 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,038 - DataGenerator - INFO - Transferred 33 from 0x5972a6fda1cef4afaefd5daed62b184f961dc7fa to 0x4d7ad0e9fb0bc06ca8e357dbc37ca79ce07fbab0
+2025-06-18 14:49:10,051 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,052 - DataGenerator - INFO - Transferred 66 from 0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3 to 0x60175c0d89db2de616aba1b3543cae5d00cff534
+2025-06-18 14:49:10,064 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,065 - DataGenerator - INFO - Transferred 20 from 0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3 to 0x2abf5f4a3cbcbdbda69cff3eefc70954be2deda2
+2025-06-18 14:49:10,079 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,080 - DataGenerator - INFO - Transferred 88 from 0x4d7ad0e9fb0bc06ca8e357dbc37ca79ce07fbab0 to 0xe64b89a9ece2eb7bd26e84edeea3ddfa2efd55b4
+2025-06-18 14:49:10,096 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,096 - DataGenerator - INFO - Transferred 91 from 0xdb8b40c0af226b4bd8eeaa4b526b78ebfd1ae9cb to 0x4d7ad0e9fb0bc06ca8e357dbc37ca79ce07fbab0
+2025-06-18 14:49:10,111 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edupay/transfer - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,112 - DataGenerator - INFO - Transferred 13 from 0xcbdc5cefa17c7bae2d0ffcf95d6d5a842734d129 to 0xae12c32b8cb7afc0ed2ff6fa50c6d0c785b9d5ef
+2025-06-18 14:49:10,112 - DataGenerator - INFO - Generating NFTs...
+2025-06-18 14:49:10,125 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,133 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,146 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,158 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,171 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,179 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,188 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,195 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,203 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,212 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/mint - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,212 - DataGenerator - INFO - Generating NFT purchases...
+2025-06-18 14:49:10,218 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,219 - DataGenerator - INFO - NFT nft-002 purchased by 0xe64b89a9ece2eb7bd26e84edeea3ddfa2efd55b4 for 545 tokens
+2025-06-18 14:49:10,226 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,227 - DataGenerator - INFO - NFT nft-002 purchased by 0xae12c32b8cb7afc0ed2ff6fa50c6d0c785b9d5ef for 479 tokens
+2025-06-18 14:49:10,232 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,232 - DataGenerator - INFO - NFT nft-002 purchased by 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 for 680 tokens
+2025-06-18 14:49:10,241 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,242 - DataGenerator - INFO - NFT nft-003 purchased by 0xdb8b40c0af226b4bd8eeaa4b526b78ebfd1ae9cb for 965 tokens
+2025-06-18 14:49:10,248 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,249 - DataGenerator - INFO - NFT nft-002 purchased by 0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c for 688 tokens
+2025-06-18 14:49:10,260 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,261 - DataGenerator - INFO - NFT nft-004 purchased by 0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c for 445 tokens
+2025-06-18 14:49:10,271 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,274 - DataGenerator - INFO - NFT nft-005 purchased by 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 for 701 tokens
+2025-06-18 14:49:10,287 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,288 - DataGenerator - INFO - NFT nft-002 purchased by 0xae12c32b8cb7afc0ed2ff6fa50c6d0c785b9d5ef for 332 tokens
+2025-06-18 14:49:10,297 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,298 - DataGenerator - INFO - NFT nft-001 purchased by 0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2 for 234 tokens
+2025-06-18 14:49:10,310 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/edumarket/buy - Status 500: {"detail":"Object of type Decimal is not JSON serializable"}
+2025-06-18 14:49:10,311 - DataGenerator - INFO - NFT nft-003 purchased by 0xe64b89a9ece2eb7bd26e84edeea3ddfa2efd55b4 for 266 tokens
+2025-06-18 14:49:10,312 - DataGenerator - INFO - Generating admission data...
+2025-06-18 14:49:10,328 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,342 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,361 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,373 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,380 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,393 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,412 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,426 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,439 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,451 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/mint_seat - Status 500: {"detail":"Unknown error"}
+2025-06-18 14:49:10,461 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,467 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,477 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,486 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,496 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,503 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,512 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,519 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,530 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,545 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/push_score - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,553 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/eduadmission/run_matching - Status 500: {"detail":"Blockchain execute failed: "}
+2025-06-18 14:49:10,554 - DataGenerator - INFO - Ran admission matching algorithm
+2025-06-18 14:49:10,555 - DataGenerator - INFO - Generating research data...
+2025-06-18 14:49:10,566 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,587 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,607 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,621 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,640 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,660 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,681 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,702 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,713 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,724 - DataGenerator - ERROR - API Error: POST http://localhost:8279/api/researchledger/publish - Status 500: {"detail":""}
+2025-06-18 14:49:10,727 - DataGenerator - INFO - Saved data to data.json
+2025-06-18 14:49:10,727 - DataGenerator - INFO - Data generation completed successfully!

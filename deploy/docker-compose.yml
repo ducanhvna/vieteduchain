@@ -6,6 +6,7 @@ services:
     ports:
       - "26657:26657"
       - "26656:26656"
+      - "1317:1317"
     networks:
       - cosmos-network
     healthcheck:
@@ -21,6 +22,7 @@ services:
     volumes:
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
       - ./deploy/contract_addresses_node1:/app/contract_addresses
+      - ./deploy/config/app.toml:/root/.appd/config/app_host.toml
     entrypoint: ["/app/entrypoint_core.sh"]
   api:
     env_file:

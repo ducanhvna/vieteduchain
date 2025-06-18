@@ -28,7 +28,7 @@ def load_initial_nodes() -> List[Dict[str, Any]]:
 
 # In-memory permissions (import from permissions.py)
 try:
-    from .permissions import permissions
+    from permissions import permissions
 except ImportError:
     permissions = {}
 
@@ -81,7 +81,7 @@ async def register_nodeinfo(request: Request):
         # Register node in the permission system
         # This requires integration with the actual permission system
         # For now, let's simulate adding to permissions dict
-        from .permissions import permissions
+        from permissions import permissions
         permissions[node_id] = True
         
         # In a real implementation, you would likely call core API
@@ -93,4 +93,5 @@ async def register_nodeinfo(request: Request):
             "node_id": node_id
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)

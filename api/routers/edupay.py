@@ -4,6 +4,7 @@ from typing import Dict, Optional
 import os
 import requests
 import json
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -90,9 +91,8 @@ def mint_evnd(req: MintRequest):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edupay/transfer")
 def transfer_evnd(req: TransferRequest):
@@ -133,9 +133,8 @@ def transfer_evnd(req: TransferRequest):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edupay/escrow/create")
 def create_escrow(req: EscrowCreateRequest):
@@ -144,12 +143,11 @@ def create_escrow(req: EscrowCreateRequest):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
         exec_msg = {"create_escrow": req.dict()}
         return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
-    except requests.exceptions.RequestException:
-        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edupay/escrow/release")
 def release_escrow(req: EscrowReleaseRequest):
@@ -157,38 +155,37 @@ def release_escrow(req: EscrowReleaseRequest):
         exec_msg = {"release_escrow": req.dict()}
         return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            return {"detail": "Contract address not set or not deployed"}, 404
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edupay/balance")
 def get_balance(address: str):
     try:
         query_msg = {"get_balance": {"address": address}}
-        return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        result = wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        return jsonable_encoder(result)
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            return {"detail": "Contract address not set or not deployed"}, 404
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edupay/escrow")
 def get_escrow(escrow_id: str):
     try:
         query_msg = {"get_escrow": {"escrow_id": escrow_id}}
-        return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        result = wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        return jsonable_encoder(result)
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            return {"detail": "Contract address not set or not deployed"}, 404
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edupay/price")
 def get_price():
     try:
         query_msg = {"get_price": {}}
-        return wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        result = wasm_query(EDUPAY_CONTRACT_ADDR, query_msg)
+        return jsonable_encoder(result)
     except Exception as e:
-        if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
-            return {"detail": "Contract address not set or not deployed"}, 404
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 # Đã loại bỏ các endpoint mock, chỉ giữ lại các endpoint thật kết nối đến blockchain

@@ -64,9 +64,8 @@ def register_did(req: RegisterDIDRequest):
     except (ConnectionError, MissingSchema, InvalidURL, RequestException):
         raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     except Exception as e:
-        if is_contract_addr_invalid(EDUID_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-id/update")
 def update_did(req: UpdateDIDRequest):

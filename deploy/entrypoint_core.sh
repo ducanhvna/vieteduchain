@@ -1,6 +1,12 @@
 #!/bin/sh
 # Entrypoint script for core container: auto-deploy contracts if needed, then start core service
 
+# Copy file app_host.toml từ volume sang đúng vị trí app.toml (tránh lỗi mount file thành folder)
+cp /root/.appd/config/app_host.toml /root/.appd/config/app.toml
+
+# Xóa file/thư mục app.toml để đảm bảo mount file từ host không bị ghi đè bởi thư mục
+rm -rf /root/.appd/config/app.toml
+
 # Do not exit on error - we want the container to keep running
 set +e 
 

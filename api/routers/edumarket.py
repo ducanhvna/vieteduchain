@@ -157,9 +157,8 @@ async def mint_course_nft(req: MintCourseNFTRequest, request: Request):
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     except Exception as e:
-        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/buy")
 async def buy_course_nft(req: BuyCourseNFTRequest):
@@ -172,14 +171,14 @@ async def buy_course_nft(req: BuyCourseNFTRequest):
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     except Exception as e:
-        if is_contract_addr_invalid(EDUMARKET_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edumarket/{id}")
 def get_course_nft(id: str):
     query_msg = {"get_course_nft": {"id": id}}
-    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edumarket")
 def list_course_nfts(sold: Optional[bool] = None):
@@ -187,7 +186,7 @@ def list_course_nfts(sold: Optional[bool] = None):
     nfts = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
     if sold is not None:
         nfts = [n for n in nfts if n.get("sold") == sold]
-    return nfts
+    return jsonable_encoder(nfts)
 
 # Certificate related endpoints
 @router.post("/edumarket/certificate/issue")
@@ -198,7 +197,8 @@ async def issue_certificate(req: IssueCertificateRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/certificate/revoke")
 async def revoke_certificate(req: RevokeCertificateRequest, request: Request):
@@ -208,7 +208,8 @@ async def revoke_certificate(req: RevokeCertificateRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/course/progress")
 async def update_course_progress(req: UpdateProgressRequest, request: Request):
@@ -222,7 +223,8 @@ async def update_course_progress(req: UpdateProgressRequest, request: Request):
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/course/complete")
 async def complete_course(req: CompleteCourseRequest, request: Request):
@@ -233,7 +235,8 @@ async def complete_course(req: CompleteCourseRequest, request: Request):
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 # Degree related endpoints
 @router.post("/edumarket/degree/issue")
@@ -245,7 +248,8 @@ async def issue_degree(req: IssueDegreeRequest, request: Request):
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/degree/revoke")
 async def revoke_degree(req: RevokeDegreeRequest, request: Request):
@@ -256,7 +260,8 @@ async def revoke_degree(req: RevokeDegreeRequest, request: Request):
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/degree/add-certificate")
 async def add_certificate_to_degree(req: AddCertificateToDegreeRequest, request: Request):
@@ -267,7 +272,8 @@ async def add_certificate_to_degree(req: AddCertificateToDegreeRequest, request:
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edumarket/degree/requirements")
 async def set_degree_requirements(req: SetDegreeRequirementsRequest, request: Request):
@@ -278,31 +284,36 @@ async def set_degree_requirements(req: SetDegreeRequirementsRequest, request: Re
         result = wasm_execute(EDUMARKET_CONTRACT_ADDR, exec_msg, sender)
         return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edumarket/degree/{degree_id}")
 def get_degree(degree_id: str):
     """Get details about a specific degree"""
     query_msg = {"get_degree": {"degree_id": degree_id}}
-    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edumarket/degree/student/{student}")
 def get_student_degrees(student: str):
     """Get all degrees for a specific student"""
     query_msg = {"get_student_degrees": {"student": student}}
-    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edumarket/degree/check-eligibility/{student}/{degree_type}")
 def check_degree_eligibility(student: str, degree_type: str):
     """Check if a student is eligible for a specific degree"""
     query_msg = {"check_eligible_for_degree": {"student": student, "degree_type": degree_type}}
-    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edumarket/degree/requirements/{degree_type}")
 def get_degree_requirements(degree_type: str):
     """Get requirements for a specific degree type"""
     query_msg = {"get_degree_requirements": {"degree_type": degree_type}}
-    return wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUMARKET_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 # QR code generation
 @router.post("/edumarket/qrcode")
@@ -338,4 +349,5 @@ def generate_qr_code(req: QRCodeRequest):
             qr_image=img_str
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)

@@ -63,9 +63,8 @@ def register_hash(req: RegisterHashRequest):
     except requests.exceptions.RequestException:
         raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     except Exception as e:
-        if is_contract_addr_invalid(RESEARCHLEDGER_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/research/mint_doi_nft")
 def mint_doi_nft(req: MintDOINFTRequest):
@@ -162,4 +161,5 @@ async def publish_research(request: Request):
             "tx_result": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)

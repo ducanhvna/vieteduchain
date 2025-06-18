@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+from api.main import app
 from unittest.mock import patch
 
 client = TestClient(app)

@@ -4,8 +4,8 @@
   "EDUCERT_CONTRACT_ADDR": "cosmos1o3fyi3uhpuyvtuubi7xdg2f5bxie8ovkyitsbo",
   "EDUPAY_CONTRACT_ADDR": "cosmos1fia520u7jvxll6jyr6gj62zm3zd0kr4fl459fz",
   "RESEARCHLEDGER_CONTRACT_ADDR": "cosmos1abtei3amhzhezu6q0eu535nxn2xr0lp824sok6",
-  "EDUMARKET_CONTRACT_ADDR": "[Entrypoint] Deploying contract edumarket from /code/cosmwasm-contracts/edumarket/artifacts/edumarket.wasm\n[Entrypoint] wasmd not available, using mock deployment\ncosmos17oa565xvjx4ag6gpcazhhjkrbhjxnw6sy368c5",
-  "GRANT_CONTRACT_ADDR": "[Entrypoint] Deploying contract grant from /code/cosmwasm-contracts/grant/artifacts/grant.wasm\n[Entrypoint] wasmd not available, using mock deployment\ncosmos1687ftz8k1c7ysgghm1xt88p2gtjfztil62m0jc",
-  "UPLOAD_CONTRACT_ADDR": "[Entrypoint] Deploying contract upload from /code/cosmwasm-contracts/upload/artifacts/upload.wasm\n[Entrypoint] wasmd not available, using mock deployment\ncosmos14ycf5ibxrklszyugr19tyfevcilfws3hmbc9qv",
-  "NODEINFO_CONTRACT_ADDR": "[Entrypoint] Deploying contract nodeinfo from /code/cosmwasm-contracts/nodeinfo/artifacts/nodeinfo.wasm\n[Entrypoint] wasmd not available, using mock deployment\ncosmos1qcx0pegt90ggiqnn0yslcr4fcblscqdtd5af8g"
+  "EDUMARKET_CONTRACT_ADDR": "cosmos17oa565xvjx4ag6gpcazhhjkrbhjxnw6sy368c5",
+  "GRANT_CONTRACT_ADDR": "cosmos1687ftz8k1c7ysgghm1xt88p2gtjfztil62m0jc",
+  "UPLOAD_CONTRACT_ADDR": "cosmos14ycf5ibxrklszyugr19tyfevcilfws3hmbc9qv",
+  "NODEINFO_CONTRACT_ADDR": "cosmos1qcx0pegt90ggiqnn0yslcr4fcblscqdtd5af8g"
 }

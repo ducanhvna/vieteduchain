@@ -4,6 +4,7 @@ from typing import Optional, List, Dict
 import os
 import requests
 import json
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -115,10 +116,8 @@ async def mint_seat(req: MintSeatRequest, request: Request):
         print(f"RequestException: {str(e)}")
         raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
-        print(f"General exception in mint_seat: {str(e)}")
-        if is_contract_addr_invalid(EDUADMISSION_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/eduadmission/burn_seat")
 async def burn_seat(req: BurnSeatRequest, request: Request):
@@ -141,33 +140,38 @@ async def run_matching(request: Request):
 @router.get("/eduadmission/get_seat")
 def get_seat(seat_id: str):
     query_msg = {"get_seat_nft": {"seat_id": seat_id}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/eduadmission/get_score")
 def get_score(candidate_hash: str):
     query_msg = {"get_candidate_score": {"candidate_hash": candidate_hash}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/eduadmission/get_result")
 def get_result(candidate_hash: str):
     query_msg = {"get_admission_result": {"candidate_hash": candidate_hash}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/eduadmission/list_scores")
 def list_scores():
-    # Query blockchain contract for all scores
     query_msg = {"list_scores": {}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/eduadmission/list_seats")
 def list_seats():
     query_msg = {"list_seats": {}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/eduadmission/list_results")
 def list_results():
     query_msg = {"list_admission_results": {}}
-    return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.post("/eduadmission/assign_seat")
 async def assign_seat(request: Request):
@@ -185,4 +189,5 @@ async def assign_seat(request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Assign seat failed: {str(e)}")
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)

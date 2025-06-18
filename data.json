@@ -17,117 +17,117 @@
   "nodes": [
     {
       "id": "node1",
-      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "name": "Đại học Quốc gia Hà Nội",
       "address": "0xe57b7364dbb9b7cc1dcefcb61f8bf6712dc28c18"
     },
     {
       "id": "node2",
-      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "name": "Đại học Bách khoa Hà Nội",
       "address": "0x4db54e7ab4ae7300d08c0aebd975e1befcc62b4e"
     },
     {
       "id": "node3",
-      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "name": "Đại học Ngoại thương",
       "address": "0x7637d993c36a04d106ad6cd6dcfea7b4ab3c5b4f"
     },
     {
       "id": "node4",
-      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "name": "Đại học Kinh tế Quốc dân",
       "address": "0x0f1daaec062f2d20b932dc86a4b4c9cc7a715cbf"
     },
     {
       "id": "node5",
-      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "name": "Đại học Y Hà Nội",
       "address": "0x757d9cfcbaf2e952b90eaf5eeb70707f8ad2a765"
     },
     {
       "id": "node1",
-      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "name": "Đại học Quốc gia Hà Nội",
       "address": "0x12a7afedfef3a16b59f7ccb5e989fff00d4715fa"
     },
     {
       "id": "node2",
-      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "name": "Đại học Bách khoa Hà Nội",
       "address": "0xd4dfefeacb3ac6550c6ceebc1f9f51bfe5c650e5"
     },
     {
       "id": "node3",
-      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "name": "Đại học Ngoại thương",
       "address": "0x8f49af25e2ebeb2bfaafeff1b90cfe7536e8d39f"
     },
     {
       "id": "node4",
-      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "name": "Đại học Kinh tế Quốc dân",
       "address": "0xeb8edd7de0fdfba95acd5a15d8cd4185f7ebe632"
     },
     {
       "id": "node5",
-      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "name": "Đại học Y Hà Nội",
       "address": "0xdbea4ed6122eefb0e5bec4cffaaedca1f86ed0cf"
     },
     {
       "id": "node1",
-      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "name": "Đại học Quốc gia Hà Nội",
       "address": "0xd3eb1e8adb0406a6a0bcbf5d3ec4239feecec8e4"
     },
     {
       "id": "node2",
-      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "name": "Đại học Bách khoa Hà Nội",
       "address": "0xce9cd3baafb8f50f21abccdc5712d4cbceb74b7c"
     },
     {
       "id": "node3",
-      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "name": "Đại học Ngoại thương",
       "address": "0xb9bbbee53db37f06764d05e7efa6ed3ba7cf8b7c"
     },
     {
       "id": "node1",
-      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "name": "Đại học Quốc gia Hà Nội",
       "address": "0x18bbf94f0eb33898b03b174ac4e3ea6ae5eb9d68"
     },
     {
       "id": "node2",
-      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "name": "Đại học Bách khoa Hà Nội",
       "address": "0xc053cfcdb7cb743cec8ffe8a2240a6579f04abc4"
     },
     {
       "id": "node3",
-      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "name": "Đại học Ngoại thương",
       "address": "0x616cbfbbfeb2aa94f1e4cbdb5dc4ab018e0ef0bd"
     },
     {
       "id": "node4",
-      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "name": "Đại học Kinh tế Quốc dân",
       "address": "0x7fb404bb7e05c24ea9c34a6d5daba4ef40ee999e"
     },
     {
       "id": "node5",
-      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "name": "Đại học Y Hà Nội",
       "address": "0x221de5d22fb33ccefcfc70bb76de661edbe8cf68"
     },
     {
       "id": "node6",
-      "name": "\u0110\u1ea1i h\u1ecdc D\u01b0\u1ee3c H\u00e0 N\u1ed9i",
+      "name": "Đại học Dược Hà Nội",
       "address": "0x09605b2083d82fff6ad9aafbda8de20dcad3ac59"
     },
     {
       "id": "node7",
-      "name": "\u0110\u1ea1i h\u1ecdc S\u01b0 ph\u1ea1m H\u00e0 N\u1ed9i",
+      "name": "Đại học Sư phạm Hà Nội",
       "address": "0xcdb7b9a2f7a51fdead73a81c8374ce2a4e338fad"
     },
     {
       "id": "node8",
-      "name": "\u0110\u1ea1i h\u1ecdc C\u00f4ng ngh\u1ec7 th\u00f4ng tin",
+      "name": "Đại học Công nghệ thông tin",
       "address": "0xb6cebb802bddbe5fe16dd69f6b93c58b45206e64"
     },
     {
       "id": "node9",
-      "name": "\u0110\u1ea1i h\u1ecdc Th\u0103ng Long",
+      "name": "Đại học Thăng Long",
       "address": "0xf8fbdc3cff98ddc180689a5c0f0d9131a1bd6b34"
     },
     {
       "id": "node10",
-      "name": "\u0110\u1ea1i h\u1ecdc FPT",
+      "name": "Đại học FPT",
       "address": "0x1cf33fbecc7678c42eaf9f95cfca7bf72e3b7cfb"
     }
   ],
@@ -144,7 +144,8 @@
     "0x2abf5f4a3cbcbdbda69cff3eefc70954be2deda2",
     "0xdb8b40c0af226b4bd8eeaa4b526b78ebfd1ae9cb",
     "0x08f9010e1246fd40fcc6e9fcecfc9a3cbaff5259",
-    "0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c"
+    "0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c",
+    "did:viedu:0001"
   ],
   "certificates": [
     {
@@ -330,6 +331,10 @@
       "certificate_name": "Certificate in Cybersecurity",
       "issue_date": "2022-07-19",
       "issuer_did": "did:viedu:0003"
+    },
+    {
+      "hash": "cert-001",
+      "student": "did:viedu:0001"
     }
   ],
   "course_completions": [
@@ -740,7 +745,8 @@
     "nft-005",
     "nft-001",
     "nft-002",
-    "nft-003"
+    "nft-003",
+    "course-001"
   ],
   "seats": [
     "seat-001",

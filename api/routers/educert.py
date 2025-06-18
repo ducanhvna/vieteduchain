@@ -7,6 +7,7 @@ import json
 import qrcode
 from io import BytesIO
 import base64
+from fastapi.encoders import jsonable_encoder
 
 router = APIRouter()
 
@@ -105,12 +106,11 @@ async def issue_vc(req: IssueVCRequest, request: Request):
         }}
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
-    except requests.exceptions.RequestException:
-        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
-        if is_contract_addr_invalid(EDUCERT_CONTRACT_ADDR):
-            raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-cert/revoke")
 async def revoke_vc(req: RevokeVCRequest, request: Request):
@@ -121,12 +121,14 @@ async def revoke_vc(req: RevokeVCRequest, request: Request):
 @router.get("/edu-cert/is_revoked")
 def is_revoked(hash: str):
     query_msg = {"is_revoked": {"hash": hash}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edu-cert/get_credential")
 def get_credential(hash: str):
     query_msg = {"get_credential": {"hash": hash}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 # NFT related endpoints
 @router.post("/edu-cert/nft/mint")
@@ -142,7 +144,8 @@ async def mint_credential_nft(req: MintNFTRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-cert/nft/transfer")
 async def transfer_credential_nft(req: TransferNFTRequest, request: Request):
@@ -155,7 +158,8 @@ async def transfer_credential_nft(req: TransferNFTRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-cert/nft/burn")
 async def burn_credential_nft(req: BurnNFTRequest, request: Request):
@@ -167,25 +171,29 @@ async def burn_credential_nft(req: BurnNFTRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edu-cert/nft/{token_id}")
 def get_credential_nft(token_id: str):
     """Get details about a specific NFT"""
     query_msg = {"get_credential_nft": {"token_id": token_id}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edu-cert/nft/owner/{owner}")
 def get_nfts_by_owner(owner: str):
     """Get all NFTs owned by a specific address"""
     query_msg = {"get_nfts_by_owner": {"owner": owner}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edu-cert/nft/issuer/{issuer}")
 def get_nfts_by_issuer(issuer: str):
     """Get all NFTs issued by a specific address"""
     query_msg = {"get_nfts_by_issuer": {"issuer": issuer}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 # School node related endpoints
 @router.post("/edu-cert/school/register")
@@ -201,7 +209,8 @@ async def register_school_node(req: RegisterSchoolNodeRequest, request: Request)
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-cert/school/update")
 async def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
@@ -216,7 +225,8 @@ async def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/edu-cert/school/deactivate")
 async def deactivate_school_node(req: DeactivateSchoolNodeRequest, request: Request):
@@ -228,26 +238,30 @@ async def deactivate_school_node(req: DeactivateSchoolNodeRequest, request: Requ
         sender = request.headers.get("X-Node-Id", "node1")
         return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/edu-cert/school/{did}")
 def get_school_node(did: str):
     """Get details about a specific school node"""
     query_msg = {"get_school_node": {"did": did}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 @router.get("/edu-cert/school/list")
 def list_school_nodes(active_only: Optional[bool] = None):
     """List all school nodes, optionally filtering for active nodes only"""
     query_msg = {"list_school_nodes": {"active_only": active_only}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 # Transaction history
 @router.get("/edu-cert/transactions")
 def get_transaction_history(limit: Optional[int] = None):
     """Get transaction history from the ledger"""
     query_msg = {"get_transaction_history": {"limit": limit}}
-    return wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+    return jsonable_encoder(result)
 
 # QR code generation
 @router.post("/edu-cert/qrcode")
@@ -329,7 +343,8 @@ async def create_certificate(request: Request):
             "tx_result": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/educert/create_course_completion")
 async def create_course_completion(request: Request):
@@ -387,7 +402,8 @@ async def create_course_completion(request: Request):
             "tx_result": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.post("/educert/issue_degree")
 async def issue_degree(request: Request):
@@ -448,7 +464,8 @@ async def issue_degree(request: Request):
             "tx_result": result
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
 
 @router.get("/educert/list_certificates")
 def list_certificates(request: Request):
@@ -479,6 +496,7 @@ def list_certificates(request: Request):
         result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
         
         # Return the results
-        return result
+        return jsonable_encoder(result)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = str(e) or "Unknown error"
+        raise HTTPException(status_code=500, detail=msg)
