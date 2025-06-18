@@ -22,8 +22,9 @@ services:
       - ./deploy/config/initial_nodes.json:/app/config/initial_nodes.json
       - ./deploy/contract_addresses_node1:/app/contract_addresses
     entrypoint: ["/app/entrypoint_core.sh"]
-
   api:
+    env_file:
+      - ./contract.env
     build:
       context: ../api
       dockerfile: ../deploy/Dockerfile.api
@@ -37,7 +38,7 @@ services:
       - NODE_ROLE=issuer
       - NODE_ID=node1
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
-      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - EDUADMISSION_CONTRACT_ADDR=cosmos11innvpn6qidskr00qi8inlrmo9ia9pep9wxjd3
       - CORE_REST_URL=http://core:26657
     networks:
       - cosmos-network
@@ -94,8 +95,9 @@ services:
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
       - core
-
   api1:
+    env_file:
+      - ./contract.env
     build:
       context: ../api
       dockerfile: ../deploy/Dockerfile.api
@@ -109,7 +111,7 @@ services:
       - NODE_ROLE=issuer
       - NODE_ID=node2
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
-      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - EDUADMISSION_CONTRACT_ADDR=cosmos11innvpn6qidskr00qi8inlrmo9ia9pep9wxjd3
       - CORE_REST_URL=http://core1:26657
     networks:
       - cosmos-network
@@ -166,8 +168,9 @@ services:
     command: ["./cosmos-permissioned-network", "start"]
     depends_on:
       - core
-
   api2:
+    env_file:
+      - ./contract.env
     build:
       context: ../api
       dockerfile: ../deploy/Dockerfile.api
@@ -181,7 +184,7 @@ services:
       - NODE_ROLE=verifier
       - NODE_ID=node3
       - INITIAL_NODES_FILE=/app/config/initial_nodes.json
-      - EDUADMISSION_CONTRACT_ADDR=eduadmission_contract_address # TODO: Thay bằng địa chỉ contract thực tế
+      - EDUADMISSION_CONTRACT_ADDR=cosmos11innvpn6qidskr00qi8inlrmo9ia9pep9wxjd3
       - CORE_REST_URL=http://core2:26657
     networks:
       - cosmos-network

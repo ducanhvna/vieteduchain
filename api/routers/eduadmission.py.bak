@@ -88,34 +88,22 @@ def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):  # 
         "sender": sender,
         "msg": exec_msg
     }
-    print(f"Sending execute request to {url} with payload: {json.dumps(payload)}")
-    try:
-        resp = requests.post(url, json=payload)
-        print(f"Response status: {resp.status_code}")
-        print(f"Response body: {resp.text}")
-        if resp.status_code != 200:
-            raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
-        return resp.json()
-    except Exception as e:
-        print(f"Exception during contract execution: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {str(e)}")
+    resp = requests.post(url, json=payload)
+    if resp.status_code != 200:
+        raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {resp.text}")
+    return resp.json()
 
 @router.post("/eduadmission/mint_seat")
 def mint_seat(req: MintSeatRequest, request: Request):
     try:
-        print(f"Processing mint_seat request for seat_id: {req.seat_id}")
         if is_contract_addr_invalid(EDUADMISSION_CONTRACT_ADDR):
-            print(f"Invalid contract address: {EDUADMISSION_CONTRACT_ADDR}")
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
         exec_msg = {"mint_seat_nft": {"seat_id": req.seat_id}}
         sender = request.headers.get("X-Node-Id", "node1")
-        print(f"Using sender: {sender}")
         return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
-    except requests.exceptions.RequestException as e:
-        print(f"RequestException: {str(e)}")
-        raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
+    except requests.exceptions.RequestException:
+        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
     except Exception as e:
-        print(f"General exception in mint_seat: {str(e)}")
         if is_contract_addr_invalid(EDUADMISSION_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
         raise HTTPException(status_code=500, detail=str(e))
@@ -169,49 +157,21 @@ def list_results():
     query_msg = {"list_admission_results": {}}
     return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
 
-@router.post("/eduadmission/mint_seat")
-async def mint_seat_mock(request: Request):
-    """Mock endpoint for mint_seat (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    return {"success": True, "seat_id": seat_id}
+# class AssignSeatRequest(BaseModel):
+#     seat_id: str
+#     candidate_hash: str
 
-@router.post("/eduadmission/burn_seat")
-async def burn_seat_mock(request: Request):
-    """Mock endpoint for burn_seat (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    return {"success": True, "seat_id": seat_id, "burned": True}
+# @router.post("/eduadmission/assign_seat")
+# def assign_seat(req: AssignSeatRequest):
+#     seat = seats.get(req.seat_id)
+#     if not seat:
+#         raise HTTPException(status_code=404, detail="Seat not found.")
+#     if seat["burned"]:
+#         raise HTTPException(status_code=400, detail="Seat already burned.")
+#     if seat["owner"] is not None:
+#         raise HTTPException(status_code=400, detail="Seat already assigned.")
+#     seat["owner"] = req.candidate_hash
+#     seat["burned"] = True  # Burn seat after assignment (xác nhận nhập học)
+#     return {"success": True, "seat": seat}
 
-@router.post("/eduadmission/push_score")
-async def push_score_mock(request: Request):
-    """Mock endpoint for push_score (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    candidate_hash = data.get("candidate_hash", "mock-candidate-001")
-    score = data.get("score", 10)
-    return {"success": True, "candidate_hash": candidate_hash, "score": score}
-
-@router.post("/eduadmission/run_matching")
-async def run_matching_mock(request: Request):
-    """Mock endpoint for run_matching (demo only)"""
-    return {"success": True, "message": "Matching completed (mock)"}
-
-@router.post("/eduadmission/assign_seat")
-async def assign_seat_mock(request: Request):
-    """Mock endpoint for assign_seat (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    candidate_hash = data.get("candidate_hash", "mock-candidate-001")
-    return {"success": True, "seat_id": seat_id, "candidate_hash": candidate_hash, "assigned": True}
+# XÓA hoàn toàn các endpoint add_seat, add_score, add_result, assign_seat dùng RAM (KHÔNG dùng biến seats, scores, results nữa)

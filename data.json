@@ -1,0 +1,607 @@
+{
+  "dids": [
+    "did:viedu:0001",
+    "did:viedu:0002",
+    "did:viedu:0003",
+    "did:viedu:0004",
+    "did:viedu:0005",
+    "did:viedu:0001",
+    "did:viedu:0002",
+    "did:viedu:0003",
+    "did:viedu:0004",
+    "did:viedu:0005",
+    "did:viedu:0001",
+    "did:viedu:0002",
+    "did:viedu:0003"
+  ],
+  "nodes": [
+    {
+      "id": "node1",
+      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "address": "0xe57b7364dbb9b7cc1dcefcb61f8bf6712dc28c18"
+    },
+    {
+      "id": "node2",
+      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "address": "0x4db54e7ab4ae7300d08c0aebd975e1befcc62b4e"
+    },
+    {
+      "id": "node3",
+      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "address": "0x7637d993c36a04d106ad6cd6dcfea7b4ab3c5b4f"
+    },
+    {
+      "id": "node4",
+      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "address": "0x0f1daaec062f2d20b932dc86a4b4c9cc7a715cbf"
+    },
+    {
+      "id": "node5",
+      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "address": "0x757d9cfcbaf2e952b90eaf5eeb70707f8ad2a765"
+    },
+    {
+      "id": "node1",
+      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "address": "0x12a7afedfef3a16b59f7ccb5e989fff00d4715fa"
+    },
+    {
+      "id": "node2",
+      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "address": "0xd4dfefeacb3ac6550c6ceebc1f9f51bfe5c650e5"
+    },
+    {
+      "id": "node3",
+      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "address": "0x8f49af25e2ebeb2bfaafeff1b90cfe7536e8d39f"
+    },
+    {
+      "id": "node4",
+      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "address": "0xeb8edd7de0fdfba95acd5a15d8cd4185f7ebe632"
+    },
+    {
+      "id": "node5",
+      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "address": "0xdbea4ed6122eefb0e5bec4cffaaedca1f86ed0cf"
+    },
+    {
+      "id": "node1",
+      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "address": "0xd3eb1e8adb0406a6a0bcbf5d3ec4239feecec8e4"
+    },
+    {
+      "id": "node2",
+      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "address": "0xce9cd3baafb8f50f21abccdc5712d4cbceb74b7c"
+    },
+    {
+      "id": "node3",
+      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "address": "0xb9bbbee53db37f06764d05e7efa6ed3ba7cf8b7c"
+    }
+  ],
+  "wallets": [
+    "0xae12c32b8cb7afc0ed2ff6fa50c6d0c785b9d5ef",
+    "0xcbdc5cefa17c7bae2d0ffcf95d6d5a842734d129",
+    "0x4d7ad0e9fb0bc06ca8e357dbc37ca79ce07fbab0",
+    "0xe64b89a9ece2eb7bd26e84edeea3ddfa2efd55b4",
+    "0x5972a6fda1cef4afaefd5daed62b184f961dc7fa",
+    "0x60175c0d89db2de616aba1b3543cae5d00cff534",
+    "0x4732d4a6fd81fc9e8bd3ae59bb64fab479ad36e2",
+    "0x4aff31a53a3dc0af6a8eefeec87e0bd8caf3bcb1",
+    "0x8b828a9112f9dfca15c1dfbf283d23a8f99cd6d3",
+    "0x2abf5f4a3cbcbdbda69cff3eefc70954be2deda2",
+    "0xdb8b40c0af226b4bd8eeaa4b526b78ebfd1ae9cb",
+    "0x08f9010e1246fd40fcc6e9fcecfc9a3cbaff5259",
+    "0xf8efdf3ef0d91bd3e3a813d218de114fd5d3491c"
+  ],
+  "certificates": [
+    {
+      "id": "cert-1",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "degree",
+      "certificate_name": "Bachelor of Science in Computer Science",
+      "issue_date": "2020-03-07",
+      "issuer_did": "did:viedu:0004"
+    },
+    {
+      "id": "cert-2",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "achievement",
+      "certificate_name": "Master of Business Administration",
+      "issue_date": "2020-08-15",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-3",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "achievement",
+      "certificate_name": "Master of Business Administration",
+      "issue_date": "2022-02-09",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-4",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "achievement",
+      "certificate_name": "Certificate in Cybersecurity",
+      "issue_date": "2024-04-30",
+      "issuer_did": "did:viedu:0005"
+    },
+    {
+      "id": "cert-5",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "course",
+      "certificate_name": "Postgraduate Certificate in Finance",
+      "issue_date": "2023-04-29",
+      "issuer_did": "did:viedu:0001"
+    },
+    {
+      "id": "cert-1",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "course",
+      "certificate_name": "Postgraduate Certificate in Finance",
+      "issue_date": "2024-09-30",
+      "issuer_did": "did:viedu:0002"
+    },
+    {
+      "id": "cert-2",
+      "student_did": "did:viedu:0005",
+      "certificate_type": "achievement",
+      "certificate_name": "Postgraduate Certificate in Finance",
+      "issue_date": "2023-11-24",
+      "issuer_did": "did:viedu:0005"
+    },
+    {
+      "id": "cert-3",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "achievement",
+      "certificate_name": "Certificate in Machine Learning",
+      "issue_date": "2024-09-10",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-4",
+      "student_did": "did:viedu:0005",
+      "certificate_type": "degree",
+      "certificate_name": "Certificate in Web Development",
+      "issue_date": "2021-11-26",
+      "issuer_did": "did:viedu:0002"
+    },
+    {
+      "id": "cert-5",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "degree",
+      "certificate_name": "Certificate in Machine Learning",
+      "issue_date": "2024-07-22",
+      "issuer_did": "did:viedu:0005"
+    },
+    {
+      "id": "cert-1",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "achievement",
+      "certificate_name": "Bachelor of Science in Computer Science",
+      "issue_date": "2020-10-29",
+      "issuer_did": "did:viedu:0002"
+    },
+    {
+      "id": "cert-2",
+      "student_did": "did:viedu:0002",
+      "certificate_type": "course",
+      "certificate_name": "Certificate in Web Development",
+      "issue_date": "2020-06-05",
+      "issuer_did": "did:viedu:0002"
+    },
+    {
+      "id": "cert-3",
+      "student_did": "did:viedu:0005",
+      "certificate_type": "degree",
+      "certificate_name": "Certificate in Business Management",
+      "issue_date": "2021-12-28",
+      "issuer_did": "did:viedu:0001"
+    }
+  ],
+  "course_completions": [
+    {
+      "id": "completion-1",
+      "student_did": "did:viedu:0003",
+      "course_id": "CS102",
+      "course_name": "Data Structures and Algorithms",
+      "completion_date": "2020-12-05",
+      "grade": "B"
+    },
+    {
+      "id": "completion-2",
+      "student_did": "did:viedu:0005",
+      "course_id": "MATH101",
+      "course_name": "Calculus I",
+      "completion_date": "2022-08-22",
+      "grade": "B-"
+    },
+    {
+      "id": "completion-3",
+      "student_did": "did:viedu:0003",
+      "course_id": "PHYS101",
+      "course_name": "Physics for Scientists and Engineers",
+      "completion_date": "2020-12-11",
+      "grade": "C-"
+    },
+    {
+      "id": "completion-4",
+      "student_did": "did:viedu:0005",
+      "course_id": "ENG101",
+      "course_name": "English Composition",
+      "completion_date": "2020-08-13",
+      "grade": "D"
+    },
+    {
+      "id": "completion-5",
+      "student_did": "did:viedu:0004",
+      "course_id": "BUS101",
+      "course_name": "Business Fundamentals",
+      "completion_date": "2022-04-18",
+      "grade": "C-"
+    },
+    {
+      "id": "completion-1",
+      "student_did": "did:viedu:0005",
+      "course_id": "CS102",
+      "course_name": "Data Structures and Algorithms",
+      "completion_date": "2022-05-05",
+      "grade": "B-"
+    },
+    {
+      "id": "completion-2",
+      "student_did": "did:viedu:0002",
+      "course_id": "MATH101",
+      "course_name": "Calculus I",
+      "completion_date": "2023-08-29",
+      "grade": "C+"
+    },
+    {
+      "id": "completion-3",
+      "student_did": "did:viedu:0002",
+      "course_id": "PHYS101",
+      "course_name": "Physics for Scientists and Engineers",
+      "completion_date": "2020-03-21",
+      "grade": "B"
+    },
+    {
+      "id": "completion-4",
+      "student_did": "did:viedu:0005",
+      "course_id": "ENG101",
+      "course_name": "English Composition",
+      "completion_date": "2024-05-13",
+      "grade": "C"
+    },
+    {
+      "id": "completion-5",
+      "student_did": "did:viedu:0003",
+      "course_id": "BUS101",
+      "course_name": "Business Fundamentals",
+      "completion_date": "2024-04-18",
+      "grade": "C"
+    },
+    {
+      "id": "completion-1",
+      "student_did": "did:viedu:0004",
+      "course_id": "CS102",
+      "course_name": "Data Structures and Algorithms",
+      "completion_date": "2020-12-15",
+      "grade": "B-"
+    },
+    {
+      "id": "completion-2",
+      "student_did": "did:viedu:0001",
+      "course_id": "MATH101",
+      "course_name": "Calculus I",
+      "completion_date": "2020-08-23",
+      "grade": "C+"
+    },
+    {
+      "id": "completion-3",
+      "student_did": "did:viedu:0001",
+      "course_id": "PHYS101",
+      "course_name": "Physics for Scientists and Engineers",
+      "completion_date": "2021-01-01",
+      "grade": "A"
+    }
+  ],
+  "degrees": [
+    {
+      "id": "degree-1",
+      "student_did": "did:viedu:0004",
+      "degree_name": "Master of Science",
+      "degree_type": "bachelor",
+      "major": "Electrical Engineering",
+      "graduation_date": "2025-01-07",
+      "gpa": 2.24
+    },
+    {
+      "id": "degree-2",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Bachelor of Arts",
+      "degree_type": "master",
+      "major": "Mechanical Engineering",
+      "graduation_date": "2023-07-06",
+      "gpa": 3.82
+    },
+    {
+      "id": "degree-3",
+      "student_did": "did:viedu:0001",
+      "degree_name": "Master of Arts",
+      "degree_type": "doctoral",
+      "major": "Business Administration",
+      "graduation_date": "2022-10-16",
+      "gpa": 3.48
+    },
+    {
+      "id": "degree-4",
+      "student_did": "did:viedu:0004",
+      "degree_name": "Bachelor of Business Administration",
+      "degree_type": "certificate",
+      "major": "Finance",
+      "graduation_date": "2024-06-28",
+      "gpa": 3.11
+    },
+    {
+      "id": "degree-5",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Master of Business Administration",
+      "degree_type": "associate",
+      "major": "Psychology",
+      "graduation_date": "2021-03-19",
+      "gpa": 3.96
+    },
+    {
+      "id": "degree-1",
+      "student_did": "did:viedu:0004",
+      "degree_name": "Master of Science",
+      "degree_type": "bachelor",
+      "major": "Electrical Engineering",
+      "graduation_date": "2024-06-04",
+      "gpa": 2.7
+    },
+    {
+      "id": "degree-2",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Bachelor of Arts",
+      "degree_type": "master",
+      "major": "Mechanical Engineering",
+      "graduation_date": "2020-04-10",
+      "gpa": 2.85
+    },
+    {
+      "id": "degree-3",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Master of Arts",
+      "degree_type": "doctoral",
+      "major": "Business Administration",
+      "graduation_date": "2024-07-25",
+      "gpa": 2.81
+    },
+    {
+      "id": "degree-4",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Bachelor of Business Administration",
+      "degree_type": "certificate",
+      "major": "Finance",
+      "graduation_date": "2024-12-04",
+      "gpa": 3.47
+    },
+    {
+      "id": "degree-5",
+      "student_did": "did:viedu:0001",
+      "degree_name": "Master of Business Administration",
+      "degree_type": "associate",
+      "major": "Psychology",
+      "graduation_date": "2024-07-23",
+      "gpa": 2.14
+    },
+    {
+      "id": "degree-1",
+      "student_did": "did:viedu:0004",
+      "degree_name": "Master of Science",
+      "degree_type": "bachelor",
+      "major": "Electrical Engineering",
+      "graduation_date": "2020-10-16",
+      "gpa": 3.68
+    },
+    {
+      "id": "degree-2",
+      "student_did": "did:viedu:0003",
+      "degree_name": "Bachelor of Arts",
+      "degree_type": "master",
+      "major": "Mechanical Engineering",
+      "graduation_date": "2020-12-10",
+      "gpa": 3.82
+    },
+    {
+      "id": "degree-3",
+      "student_did": "did:viedu:0002",
+      "degree_name": "Master of Arts",
+      "degree_type": "doctoral",
+      "major": "Business Administration",
+      "graduation_date": "2022-08-03",
+      "gpa": 2.53
+    }
+  ],
+  "nfts": [
+    "nft-001",
+    "nft-002",
+    "nft-003",
+    "nft-004",
+    "nft-005",
+    "nft-001",
+    "nft-002",
+    "nft-003",
+    "nft-004",
+    "nft-005",
+    "nft-001",
+    "nft-002",
+    "nft-003"
+  ],
+  "seats": [
+    "seat-001",
+    "seat-002",
+    "seat-003",
+    "seat-004",
+    "seat-005",
+    "seat-001",
+    "seat-002",
+    "seat-003",
+    "seat-004",
+    "seat-005",
+    "seat-001",
+    "seat-002",
+    "seat-003"
+  ],
+  "scores": [
+    {
+      "id": "score-001",
+      "candidate_hash": "did:viedu:0004",
+      "score": 8.16
+    },
+    {
+      "id": "score-002",
+      "candidate_hash": "did:viedu:0002",
+      "score": 5.23
+    },
+    {
+      "id": "score-003",
+      "candidate_hash": "did:viedu:0004",
+      "score": 6.65
+    },
+    {
+      "id": "score-004",
+      "candidate_hash": "did:viedu:0005",
+      "score": 8.59
+    },
+    {
+      "id": "score-005",
+      "candidate_hash": "did:viedu:0005",
+      "score": 8.33
+    },
+    {
+      "id": "score-001",
+      "candidate_hash": "did:viedu:0003",
+      "score": 7.78
+    },
+    {
+      "id": "score-002",
+      "candidate_hash": "did:viedu:0004",
+      "score": 7.4
+    },
+    {
+      "id": "score-003",
+      "candidate_hash": "did:viedu:0001",
+      "score": 9.56
+    },
+    {
+      "id": "score-004",
+      "candidate_hash": "did:viedu:0003",
+      "score": 7.13
+    },
+    {
+      "id": "score-005",
+      "candidate_hash": "did:viedu:0003",
+      "score": 7.27
+    },
+    {
+      "id": "score-001",
+      "candidate_hash": "did:viedu:0001",
+      "score": 6.68
+    },
+    {
+      "id": "score-002",
+      "candidate_hash": "did:viedu:0001",
+      "score": 6.06
+    },
+    {
+      "id": "score-003",
+      "candidate_hash": "did:viedu:0004",
+      "score": 5.9
+    }
+  ],
+  "research_papers": [
+    {
+      "id": "paper-1",
+      "author": "did:viedu:0003",
+      "title": "Secure Identity Management with Decentralized Identifiers",
+      "hash": "c04b0e63fafc2e337bf1639d3fd690552fdf93d700462cd650e21651af10dc29"
+    },
+    {
+      "id": "paper-2",
+      "author": "did:viedu:0002",
+      "title": "Smart Contracts for Automated Credential Verification",
+      "hash": "d36344d39f42ba2dc8ff5fca560c0f65e6c7fea1089d6fc1f9ac509235dc54c4"
+    },
+    {
+      "id": "paper-3",
+      "author": "did:viedu:0001",
+      "title": "Privacy-Preserving Methods in Educational Records",
+      "hash": "639e48bb4463cf360ac3b251f692b2ffb1391827ab0a11a1386d5530ccad0e94"
+    },
+    {
+      "id": "paper-4",
+      "author": "did:viedu:0004",
+      "title": "Tokenization of Educational Assets: Opportunities and Challenges",
+      "hash": "55e0b08579a5bae97cfae496327792bca8823808a8d5575f733a4b68fb52edeb"
+    },
+    {
+      "id": "paper-5",
+      "author": "did:viedu:0005",
+      "title": "Consensus Mechanisms for Academic Peer Review",
+      "hash": "184fd96415ae12a95b0195ea1ab3c462751f2ed3f9741a18478d949f9b2d2d62"
+    },
+    {
+      "id": "paper-1",
+      "author": "did:viedu:0003",
+      "title": "Secure Identity Management with Decentralized Identifiers",
+      "hash": "c04b0e63fafc2e337bf1639d3fd690552fdf93d700462cd650e21651af10dc29"
+    },
+    {
+      "id": "paper-2",
+      "author": "did:viedu:0001",
+      "title": "Smart Contracts for Automated Credential Verification",
+      "hash": "5908332ef2daa3721db9d9c663df4125105c5344b7ca2d2cbbf83fa99eb894ce"
+    },
+    {
+      "id": "paper-3",
+      "author": "did:viedu:0004",
+      "title": "Privacy-Preserving Methods in Educational Records",
+      "hash": "7e2b5d40b84a67b4ce3792e9ed0191985cdad61d3c8ab1e7de6b3473ac3352a2"
+    },
+    {
+      "id": "paper-4",
+      "author": "did:viedu:0002",
+      "title": "Tokenization of Educational Assets: Opportunities and Challenges",
+      "hash": "cedc0507549b991df931a7de8d841a7c1070caa3a548ff29b4eabfbfa7f47cda"
+    },
+    {
+      "id": "paper-5",
+      "author": "did:viedu:0004",
+      "title": "Consensus Mechanisms for Academic Peer Review",
+      "hash": "f81ab41253c479bd1054ab2add35ffd5e8d9731ccc2ccf8721b4fcb6c5401fa5"
+    },
+    {
+      "id": "paper-1",
+      "author": "did:viedu:0004",
+      "title": "Secure Identity Management with Decentralized Identifiers",
+      "hash": "d8aadbdb7537b16326108d565b580e75b0c677a7da54373ec97562daf757d3c7"
+    },
+    {
+      "id": "paper-2",
+      "author": "did:viedu:0004",
+      "title": "Smart Contracts for Automated Credential Verification",
+      "hash": "90c0296955aca68e84e2efe08390056dcab6ba55e8729293dda49bba34524c95"
+    },
+    {
+      "id": "paper-3",
+      "author": "did:viedu:0002",
+      "title": "Privacy-Preserving Methods in Educational Records",
+      "hash": "b33d430d2656a8aa44ee03e9a09751f76f5b1e01c21e1ebff61cbaadf332dc59"
+    }
+  ]
+}

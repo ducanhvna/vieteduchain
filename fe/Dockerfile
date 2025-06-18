@@ -14,14 +14,14 @@ COPY package.json ./
 # Xóa cache và cài đặt dependencies
 RUN npm cache clean --force
 
-RUN npm install recharts --force
+# RUN npm install recharts --force
 
 # Cài đặt dependencies trước
 RUN npm install --force
-RUN npm install recharts --force
-RUN npm install echarts echarts-for-react echarts-gl --force
-RUN npm install react-3d-pie-chart d3 --force
-RUN npm install react-plotly.js plotly.js --force
+# RUN npm install recharts --force
+# RUN npm install echarts echarts-for-react echarts-gl --force
+# RUN npm install react-3d-pie-chart d3 --force
+# RUN npm install react-plotly.js plotly.js --force
 
 # Sao chép toàn bộ mã nguồn vào container
 COPY . .

@@ -284,3 +284,201 @@ def generate_qr_code(req: QRCodeRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/educert/create_certificate")
+async def create_certificate(request: Request):
+    """Create a new certificate on the blockchain"""
+    try:
+        try:
+            data = await request.json() if hasattr(request, 'json') else {}
+        except Exception:
+            data = {}
+        
+        # Required parameters
+        student_id = data.get("student_id")
+        certificate_type = data.get("certificate_type", "general")
+        metadata = data.get("metadata", {})
+        issuer = request.headers.get("X-Node-Id", "node1")
+        
+        if not student_id:
+            raise HTTPException(status_code=400, detail="Missing student_id parameter")
+            
+        # Generate a unique certificate hash
+        import hashlib
+        import time
+        cert_hash = hashlib.sha256(f"{student_id}-{certificate_type}-{time.time()}".encode()).hexdigest()
+        
+        # Create certificate on blockchain
+        exec_msg = {
+            "issue_credential": {
+                "hash": cert_hash,
+                "metadata": json.dumps(metadata),
+                "issuer": issuer,
+                "credential_type": certificate_type
+            }
+        }
+        
+        result = wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, issuer)
+        
+        return {
+            "success": True, 
+            "certificate_id": cert_hash,
+            "student_id": student_id,
+            "issuer": issuer,
+            "type": certificate_type,
+            "tx_result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/educert/create_course_completion")
+async def create_course_completion(request: Request):
+    """Create a course completion certificate on the blockchain"""
+    try:
+        try:
+            data = await request.json() if hasattr(request, 'json') else {}
+        except Exception:
+            data = {}
+        
+        # Required parameters
+        student_id = data.get("student_id")
+        course_id = data.get("course_id")
+        course_name = data.get("course_name", "")
+        grade = data.get("grade", "")
+        completion_date = data.get("completion_date", "")
+        issuer = request.headers.get("X-Node-Id", "node1")
+        
+        if not student_id or not course_id:
+            raise HTTPException(status_code=400, detail="Missing student_id or course_id parameter")
+            
+        # Generate a unique certificate hash
+        import hashlib
+        import time
+        cert_hash = hashlib.sha256(f"{student_id}-{course_id}-{time.time()}".encode()).hexdigest()
+        
+        # Create metadata
+        metadata = {
+            "student_id": student_id,
+            "course_id": course_id,
+            "course_name": course_name,
+            "grade": grade,
+            "completion_date": completion_date,
+            "certificate_type": "course_completion"
+        }
+        
+        # Create certificate on blockchain
+        exec_msg = {
+            "issue_credential": {
+                "hash": cert_hash,
+                "metadata": json.dumps(metadata),
+                "issuer": issuer,
+                "credential_type": "course_completion"
+            }
+        }
+        
+        result = wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, issuer)
+        
+        return {
+            "success": True, 
+            "course_completion_id": cert_hash,
+            "student_id": student_id,
+            "course_id": course_id,
+            "issuer": issuer,
+            "tx_result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/educert/issue_degree")
+async def issue_degree(request: Request):
+    """Issue a degree certificate on the blockchain"""
+    try:
+        try:
+            data = await request.json() if hasattr(request, 'json') else {}
+        except Exception:
+            data = {}
+        
+        # Required parameters
+        student_id = data.get("student_id")
+        degree_type = data.get("degree_type", "bachelor")  # bachelor, master, phd
+        major = data.get("major", "")
+        university = data.get("university", "")
+        issue_date = data.get("issue_date", "")
+        graduation_date = data.get("graduation_date", "")
+        issuer = request.headers.get("X-Node-Id", "node1")
+        
+        if not student_id:
+            raise HTTPException(status_code=400, detail="Missing student_id parameter")
+            
+        # Generate a unique degree hash
+        import hashlib
+        import time
+        degree_hash = hashlib.sha256(f"{student_id}-{degree_type}-{major}-{time.time()}".encode()).hexdigest()
+        
+        # Create metadata
+        metadata = {
+            "student_id": student_id,
+            "degree_type": degree_type,
+            "major": major,
+            "university": university,
+            "issue_date": issue_date,
+            "graduation_date": graduation_date,
+            "certificate_type": "degree"
+        }
+        
+        # Create degree on blockchain
+        exec_msg = {
+            "issue_credential": {
+                "hash": degree_hash,
+                "metadata": json.dumps(metadata),
+                "issuer": issuer,
+                "credential_type": "degree"
+            }
+        }
+        
+        result = wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, issuer)
+        
+        return {
+            "success": True, 
+            "degree_id": degree_hash,
+            "student_id": student_id,
+            "degree_type": degree_type,
+            "major": major,
+            "issuer": issuer,
+            "tx_result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/educert/list_certificates")
+def list_certificates(request: Request):
+    """List all certificates in the system"""
+    try:
+        # Set up query parameters
+        issuer = request.query_params.get("issuer", None)
+        credential_type = request.query_params.get("type", None)
+        limit = request.query_params.get("limit", None)
+        
+        # Convert limit to integer if present
+        if limit:
+            try:
+                limit = int(limit)
+            except ValueError:
+                limit = None
+        
+        # Prepare query message
+        query_msg = {
+            "list_credentials": {
+                "issuer": issuer,
+                "credential_type": credential_type,
+                "limit": limit
+            }
+        }
+        
+        # Execute the query
+        result = wasm_query(EDUCERT_CONTRACT_ADDR, query_msg)
+        
+        # Return the results
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

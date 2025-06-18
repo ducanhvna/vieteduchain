@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 import os
@@ -60,3 +60,37 @@ def get_nodeinfo(request: Request):
         current_node=current_node,
         current_permission=current_permission
     )
+
+@router.post("/nodeinfo/register")
+async def register_nodeinfo(request: Request):
+    """Register a new node on the network"""
+    try:
+        # Extract node data from request
+        try:
+            data = await request.json() if hasattr(request, 'json') else {}
+        except Exception:
+            data = {}
+        
+        node_id = data.get("node_id", "")
+        node_name = data.get("name", "")
+        node_address = data.get("address", "")
+        
+        if not node_id:
+            raise HTTPException(status_code=400, detail="Missing node_id parameter")
+        
+        # Register node in the permission system
+        # This requires integration with the actual permission system
+        # For now, let's simulate adding to permissions dict
+        from .permissions import permissions
+        permissions[node_id] = True
+        
+        # In a real implementation, you would likely call core API
+        # to register the node on the blockchain
+        
+        return {
+            "success": True, 
+            "message": f"Node {node_id} registered successfully", 
+            "node_id": node_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

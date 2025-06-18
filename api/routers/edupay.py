@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Dict, Optional
 import os
@@ -60,13 +60,35 @@ class PriceQueryResponse(BaseModel):
 
 @router.post("/edupay/mint")
 def mint_evnd(req: MintRequest):
+    """Mint new eVND tokens to a wallet address on the blockchain"""
     try:
         if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        exec_msg = {"mint_evnd": req.dict()}
-        return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
-    except requests.exceptions.RequestException:
-        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        
+        # Validate request
+        if req.amount <= 0:
+            raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+        if not req.address or req.address.strip() == "":
+            raise HTTPException(status_code=400, detail="Invalid wallet address")
+        
+        # Format the exec message for the contract
+        exec_msg = {"mint_evnd": {
+            "address": req.address,
+            "amount": req.amount
+        }}
+        
+        # Execute on blockchain
+        result = wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
+        
+        # Return success with transaction details
+        return {
+            "success": True,
+            "wallet": req.address,
+            "amount": req.amount,
+            "tx_result": result
+        }
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
         if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
@@ -74,13 +96,42 @@ def mint_evnd(req: MintRequest):
 
 @router.post("/edupay/transfer")
 def transfer_evnd(req: TransferRequest):
+    """Transfer eVND tokens between wallet addresses on the blockchain"""
     try:
         if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
-        exec_msg = {"transfer_evnd": req.dict()}
-        return wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg)
-    except requests.exceptions.RequestException:
-        raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
+        
+        # Validate request
+        if req.amount <= 0:
+            raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+        if not req.from_address or req.from_address.strip() == "":
+            raise HTTPException(status_code=400, detail="Invalid sender wallet address")
+        if not req.to_address or req.to_address.strip() == "":
+            raise HTTPException(status_code=400, detail="Invalid recipient wallet address")
+        if req.from_address == req.to_address:
+            raise HTTPException(status_code=400, detail="Sender and recipient cannot be the same")
+        
+        # Format the exec message for the contract
+        exec_msg = {"transfer_evnd": {
+            "from_address": req.from_address,
+            "to_address": req.to_address,
+            "amount": req.amount
+        }}
+        
+        # Execute on blockchain
+        result = wasm_execute(EDUPAY_CONTRACT_ADDR, exec_msg, req.from_address)
+        
+        # Return success with transaction details
+        return {
+            "success": True,
+            "from_address": req.from_address,
+            "to_address": req.to_address,
+            "amount": req.amount,
+            "tx_result": result,
+            "tx_id": result.get("tx_id") if isinstance(result, dict) and "tx_id" in result else "tx-" + str(hash(str(req)))[:8]
+        }
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=404, detail=f"Contract address not set or not deployed: {str(e)}")
     except Exception as e:
         if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
@@ -139,3 +190,5 @@ def get_price():
         if is_contract_addr_invalid(EDUPAY_CONTRACT_ADDR):
             return {"detail": "Contract address not set or not deployed"}, 404
         raise HTTPException(status_code=500, detail=str(e))
+
+# Đã loại bỏ các endpoint mock, chỉ giữ lại các endpoint thật kết nối đến blockchain

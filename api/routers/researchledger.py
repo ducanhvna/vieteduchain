@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 import time
@@ -106,3 +106,60 @@ def list_bounty_claims():
 def search_hashes(owner: str = None, doi: str = None):
     query_msg = {"search_hashes": {"owner": owner, "doi": doi}}
     return wasm_query(RESEARCHLEDGER_CONTRACT_ADDR, query_msg)
+
+@router.post("/researchledger/publish")
+async def publish_research(request: Request):
+    """Publish research on the blockchain"""
+    try:
+        try:
+            data = await request.json() if hasattr(request, 'json') else {}
+        except Exception:
+            data = {}
+        
+        # Required parameters
+        title = data.get("title")
+        abstract = data.get("abstract", "")
+        authors = data.get("authors", [])
+        doi = data.get("doi", "")
+        hash_value = data.get("hash")  # Hash of the research paper content
+        owner = request.headers.get("X-Node-Id", "node1")
+        
+        if not title or not hash_value:
+            raise HTTPException(status_code=400, detail="Missing title or hash parameter")
+            
+        # Generate research ID if not provided
+        import hashlib
+        import time
+        research_id = hashlib.sha256(f"{title}-{hash_value}-{time.time()}".encode()).hexdigest()
+        
+        # Create metadata
+        metadata = {
+            "title": title,
+            "abstract": abstract,
+            "authors": authors,
+            "doi": doi,
+            "publication_date": time.strftime("%Y-%m-%d")
+        }
+        
+        # Publish research on blockchain
+        exec_msg = {
+            "submit_hash": {
+                "hash": hash_value,
+                "owner": owner,
+                "metadata": json.dumps(metadata),
+                "doi": doi
+            }
+        }
+        
+        result = wasm_execute(RESEARCHLEDGER_CONTRACT_ADDR, exec_msg, owner)
+        
+        return {
+            "success": True, 
+            "research_id": research_id,
+            "hash": hash_value,
+            "doi": doi,
+            "owner": owner,
+            "tx_result": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

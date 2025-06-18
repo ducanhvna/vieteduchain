@@ -33,3 +33,7 @@ app.include_router(edumarket.router, prefix="/api")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Cosmos Permissioned Network API"}
+
+@app.get("/api/health")
+def health_check():
+    return {"success": True, "status": "ok", "message": "API is running"}

@@ -84,6 +84,21 @@ export default function RootLayout({
                         meta: { label: "EduAdmission" },
                       },
                       {
+                        name: "certificates",
+                        list: "/certificates",
+                        meta: { label: "Certificates" },
+                      },
+                      {
+                        name: "course-completion",
+                        list: "/course-completion",
+                        meta: { label: "Course Completion" },
+                      },
+                      {
+                        name: "degree-issuance",
+                        list: "/degree-issuance",
+                        meta: { label: "Degree Issuance" },
+                      },
+                      {
                         name: "upload",
                         list: "/upload",
                         meta: { label: "Upload" },

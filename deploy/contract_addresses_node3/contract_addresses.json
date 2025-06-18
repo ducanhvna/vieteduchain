@@ -1,7 +1,11 @@
 {
-  "EDUADMISSION_CONTRACT_ADDR": "cosmos1kz5smod9pj0vt5aboer2svnpr52bhrtqjp5cs0",
+  "EDUADMISSION_CONTRACT_ADDR": "cosmos11innvpn6qidskr00qi8inlrmo9ia9pep9wxjd3",
   "EDUID_CONTRACT_ADDR": "cosmos1zwju01hxwu9l6xvjha7ehe8uqo1rpr09gtta6o",
   "EDUCERT_CONTRACT_ADDR": "cosmos1oze9zuf7ae5urytvetq7hjnik0rnocty83z6r0",
   "EDUPAY_CONTRACT_ADDR": "cosmos1mp75wi9hr1wnuhwhj9ybmu0ncy2ivdhocvtsko",
-  "RESEARCHLEDGER_CONTRACT_ADDR": "cosmos15xgxmx5muhx2umo2w1uorn2oj2rcbnl5n4blbp"
+  "RESEARCHLEDGER_CONTRACT_ADDR": "cosmos15xgxmx5muhx2umo2w1uorn2oj2rcbnl5n4blbp",
+  "EDUMARKET_CONTRACT_ADDR": "cosmos17oa565xvjx4ag6gpcazhhjkrbhjxnw6sy368c5",
+  "GRANT_CONTRACT_ADDR": "cosmos1r4pzw8f9z0sypct5l9j906d47z998ulwvhvsqv",
+  "UPLOAD_CONTRACT_ADDR": "cosmos1w4x4s6j560p7rjrsy4xl6nfks6vjq42naw5gkd",
+  "NODEINFO_CONTRACT_ADDR": "cosmos1dmqyd7900vzcq5m7f8y9u7xk5yptsr0q8mhu8a"
 }
