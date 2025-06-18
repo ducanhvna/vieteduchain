@@ -79,6 +79,56 @@
       "id": "node3",
       "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
       "address": "0xb9bbbee53db37f06764d05e7efa6ed3ba7cf8b7c"
+    },
+    {
+      "id": "node1",
+      "name": "\u0110\u1ea1i h\u1ecdc Qu\u1ed1c gia H\u00e0 N\u1ed9i",
+      "address": "0x18bbf94f0eb33898b03b174ac4e3ea6ae5eb9d68"
+    },
+    {
+      "id": "node2",
+      "name": "\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i",
+      "address": "0xc053cfcdb7cb743cec8ffe8a2240a6579f04abc4"
+    },
+    {
+      "id": "node3",
+      "name": "\u0110\u1ea1i h\u1ecdc Ngo\u1ea1i th\u01b0\u01a1ng",
+      "address": "0x616cbfbbfeb2aa94f1e4cbdb5dc4ab018e0ef0bd"
+    },
+    {
+      "id": "node4",
+      "name": "\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n",
+      "address": "0x7fb404bb7e05c24ea9c34a6d5daba4ef40ee999e"
+    },
+    {
+      "id": "node5",
+      "name": "\u0110\u1ea1i h\u1ecdc Y H\u00e0 N\u1ed9i",
+      "address": "0x221de5d22fb33ccefcfc70bb76de661edbe8cf68"
+    },
+    {
+      "id": "node6",
+      "name": "\u0110\u1ea1i h\u1ecdc D\u01b0\u1ee3c H\u00e0 N\u1ed9i",
+      "address": "0x09605b2083d82fff6ad9aafbda8de20dcad3ac59"
+    },
+    {
+      "id": "node7",
+      "name": "\u0110\u1ea1i h\u1ecdc S\u01b0 ph\u1ea1m H\u00e0 N\u1ed9i",
+      "address": "0xcdb7b9a2f7a51fdead73a81c8374ce2a4e338fad"
+    },
+    {
+      "id": "node8",
+      "name": "\u0110\u1ea1i h\u1ecdc C\u00f4ng ngh\u1ec7 th\u00f4ng tin",
+      "address": "0xb6cebb802bddbe5fe16dd69f6b93c58b45206e64"
+    },
+    {
+      "id": "node9",
+      "name": "\u0110\u1ea1i h\u1ecdc Th\u0103ng Long",
+      "address": "0xf8fbdc3cff98ddc180689a5c0f0d9131a1bd6b34"
+    },
+    {
+      "id": "node10",
+      "name": "\u0110\u1ea1i h\u1ecdc FPT",
+      "address": "0x1cf33fbecc7678c42eaf9f95cfca7bf72e3b7cfb"
     }
   ],
   "wallets": [
@@ -200,6 +250,86 @@
       "certificate_name": "Certificate in Business Management",
       "issue_date": "2021-12-28",
       "issuer_did": "did:viedu:0001"
+    },
+    {
+      "id": "cert-1",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "course",
+      "certificate_name": "Bachelor of Science in Computer Science",
+      "issue_date": "2022-09-10",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-2",
+      "student_did": "did:viedu:0002",
+      "certificate_type": "course",
+      "certificate_name": "Doctorate in Engineering",
+      "issue_date": "2024-09-13",
+      "issuer_did": "did:viedu:0004"
+    },
+    {
+      "id": "cert-3",
+      "student_did": "did:viedu:0005",
+      "certificate_type": "degree",
+      "certificate_name": "Doctorate in Engineering",
+      "issue_date": "2022-01-20",
+      "issuer_did": "did:viedu:0004"
+    },
+    {
+      "id": "cert-4",
+      "student_did": "did:viedu:0003",
+      "certificate_type": "degree",
+      "certificate_name": "Bachelor of Science in Computer Science",
+      "issue_date": "2024-09-28",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-5",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "course",
+      "certificate_name": "Doctorate in Engineering",
+      "issue_date": "2021-01-19",
+      "issuer_did": "did:viedu:0001"
+    },
+    {
+      "id": "cert-6",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "course",
+      "certificate_name": "Doctorate in Engineering",
+      "issue_date": "2025-01-28",
+      "issuer_did": "did:viedu:0002"
+    },
+    {
+      "id": "cert-7",
+      "student_did": "did:viedu:0001",
+      "certificate_type": "degree",
+      "certificate_name": "Professional Certificate in Data Science",
+      "issue_date": "2024-06-07",
+      "issuer_did": "did:viedu:0001"
+    },
+    {
+      "id": "cert-8",
+      "student_did": "did:viedu:0005",
+      "certificate_type": "achievement",
+      "certificate_name": "Certificate in Cybersecurity",
+      "issue_date": "2022-09-04",
+      "issuer_did": "did:viedu:0004"
+    },
+    {
+      "id": "cert-9",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "achievement",
+      "certificate_name": "Postgraduate Certificate in Finance",
+      "issue_date": "2020-12-26",
+      "issuer_did": "did:viedu:0003"
+    },
+    {
+      "id": "cert-10",
+      "student_did": "did:viedu:0004",
+      "certificate_type": "degree",
+      "certificate_name": "Certificate in Cybersecurity",
+      "issue_date": "2022-07-19",
+      "issuer_did": "did:viedu:0003"
     }
   ],
   "course_completions": [
@@ -306,6 +436,86 @@
       "course_name": "Physics for Scientists and Engineers",
       "completion_date": "2021-01-01",
       "grade": "A"
+    },
+    {
+      "id": "completion-1",
+      "student_did": "did:viedu:0001",
+      "course_id": "CS102",
+      "course_name": "Data Structures and Algorithms",
+      "completion_date": "2025-05-11",
+      "grade": "B"
+    },
+    {
+      "id": "completion-2",
+      "student_did": "did:viedu:0001",
+      "course_id": "MATH101",
+      "course_name": "Calculus I",
+      "completion_date": "2023-06-21",
+      "grade": "D"
+    },
+    {
+      "id": "completion-3",
+      "student_did": "did:viedu:0001",
+      "course_id": "PHYS101",
+      "course_name": "Physics for Scientists and Engineers",
+      "completion_date": "2021-06-14",
+      "grade": "A"
+    },
+    {
+      "id": "completion-4",
+      "student_did": "did:viedu:0002",
+      "course_id": "ENG101",
+      "course_name": "English Composition",
+      "completion_date": "2021-06-22",
+      "grade": "C+"
+    },
+    {
+      "id": "completion-5",
+      "student_did": "did:viedu:0004",
+      "course_id": "BUS101",
+      "course_name": "Business Fundamentals",
+      "completion_date": "2023-05-04",
+      "grade": "C+"
+    },
+    {
+      "id": "completion-6",
+      "student_did": "did:viedu:0002",
+      "course_id": "DATA101",
+      "course_name": "Introduction to Data Science",
+      "completion_date": "2024-10-24",
+      "grade": "A+"
+    },
+    {
+      "id": "completion-7",
+      "student_did": "did:viedu:0002",
+      "course_id": "AI101",
+      "course_name": "Artificial Intelligence Basics",
+      "completion_date": "2020-07-02",
+      "grade": "C-"
+    },
+    {
+      "id": "completion-8",
+      "student_did": "did:viedu:0002",
+      "course_id": "WEB101",
+      "course_name": "Web Development Foundations",
+      "completion_date": "2025-01-09",
+      "grade": "B-"
+    },
+    {
+      "id": "completion-9",
+      "student_did": "did:viedu:0002",
+      "course_id": "SEC101",
+      "course_name": "Introduction to Cybersecurity",
+      "completion_date": "2024-06-09",
+      "grade": "C+"
+    },
+    {
+      "id": "completion-10",
+      "student_did": "did:viedu:0001",
+      "course_id": "CS101",
+      "course_name": "Introduction to Computer Science",
+      "completion_date": "2024-12-13",
+      "grade": "C+"
     }
   ],
   "degrees": [
@@ -425,6 +635,96 @@
       "major": "Business Administration",
       "graduation_date": "2022-08-03",
       "gpa": 2.53
+    },
+    {
+      "id": "degree-1",
+      "student_did": "did:viedu:0003",
+      "degree_name": "Master of Science",
+      "degree_type": "bachelor",
+      "major": "Electrical Engineering",
+      "graduation_date": "2020-05-29",
+      "gpa": 2.31
+    },
+    {
+      "id": "degree-2",
+      "student_did": "did:viedu:0001",
+      "degree_name": "Bachelor of Arts",
+      "degree_type": "master",
+      "major": "Mechanical Engineering",
+      "graduation_date": "2020-05-21",
+      "gpa": 3.59
+    },
+    {
+      "id": "degree-3",
+      "student_did": "did:viedu:0001",
+      "degree_name": "Master of Arts",
+      "degree_type": "doctoral",
+      "major": "Business Administration",
+      "graduation_date": "2024-05-21",
+      "gpa": 2.74
+    },
+    {
+      "id": "degree-4",
+      "student_did": "did:viedu:0002",
+      "degree_name": "Bachelor of Business Administration",
+      "degree_type": "certificate",
+      "major": "Finance",
+      "graduation_date": "2021-09-05",
+      "gpa": 2.84
+    },
+    {
+      "id": "degree-5",
+      "student_did": "did:viedu:0003",
+      "degree_name": "Master of Business Administration",
+      "degree_type": "associate",
+      "major": "Psychology",
+      "graduation_date": "2025-01-24",
+      "gpa": 2.07
+    },
+    {
+      "id": "degree-6",
+      "student_did": "did:viedu:0002",
+      "degree_name": "Bachelor of Engineering",
+      "degree_type": "bachelor",
+      "major": "Medicine",
+      "graduation_date": "2021-04-22",
+      "gpa": 2.72
+    },
+    {
+      "id": "degree-7",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Master of Engineering",
+      "degree_type": "master",
+      "major": "Biology",
+      "graduation_date": "2021-12-23",
+      "gpa": 2.47
+    },
+    {
+      "id": "degree-8",
+      "student_did": "did:viedu:0005",
+      "degree_name": "Doctor of Philosophy",
+      "degree_type": "doctoral",
+      "major": "Physics",
+      "graduation_date": "2022-10-09",
+      "gpa": 2.15
+    },
+    {
+      "id": "degree-9",
+      "student_did": "did:viedu:0003",
+      "degree_name": "Doctor of Medicine",
+      "degree_type": "certificate",
+      "major": "Mathematics",
+      "graduation_date": "2024-05-02",
+      "gpa": 3.56
+    },
+    {
+      "id": "degree-10",
+      "student_did": "did:viedu:0003",
+      "degree_name": "Bachelor of Science",
+      "degree_type": "associate",
+      "major": "Computer Science",
+      "graduation_date": "2022-04-02",
+      "gpa": 2.01
     }
   ],
   "nfts": [

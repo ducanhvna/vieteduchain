@@ -93,7 +93,7 @@ class QRCodeResponse(BaseModel):
     qr_image: str  # Base64 encoded image
 
 @router.post("/edu-cert/issue")
-def issue_vc(req: IssueVCRequest, request: Request):
+async def issue_vc(req: IssueVCRequest, request: Request):
     try:
         if is_contract_addr_invalid(EDUCERT_CONTRACT_ADDR):
             raise HTTPException(status_code=404, detail="Contract address not set or not deployed")
@@ -113,7 +113,7 @@ def issue_vc(req: IssueVCRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edu-cert/revoke")
-def revoke_vc(req: RevokeVCRequest, request: Request):
+async def revoke_vc(req: RevokeVCRequest, request: Request):
     exec_msg = {"revoke_vc": {"hash": req.hash}}
     sender = request.headers.get("X-Node-Id", "node1")
     return wasm_execute(EDUCERT_CONTRACT_ADDR, exec_msg, sender)
@@ -130,7 +130,7 @@ def get_credential(hash: str):
 
 # NFT related endpoints
 @router.post("/edu-cert/nft/mint")
-def mint_credential_nft(req: MintNFTRequest, request: Request):
+async def mint_credential_nft(req: MintNFTRequest, request: Request):
     """Mint a new NFT for a credential"""
     try:
         exec_msg = {"mint_credential_nft": {
@@ -145,7 +145,7 @@ def mint_credential_nft(req: MintNFTRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edu-cert/nft/transfer")
-def transfer_credential_nft(req: TransferNFTRequest, request: Request):
+async def transfer_credential_nft(req: TransferNFTRequest, request: Request):
     """Transfer an NFT to a new owner"""
     try:
         exec_msg = {"transfer_credential_nft": {
@@ -158,7 +158,7 @@ def transfer_credential_nft(req: TransferNFTRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edu-cert/nft/burn")
-def burn_credential_nft(req: BurnNFTRequest, request: Request):
+async def burn_credential_nft(req: BurnNFTRequest, request: Request):
     """Burn (destroy) an NFT"""
     try:
         exec_msg = {"burn_credential_nft": {
@@ -189,7 +189,7 @@ def get_nfts_by_issuer(issuer: str):
 
 # School node related endpoints
 @router.post("/edu-cert/school/register")
-def register_school_node(req: RegisterSchoolNodeRequest, request: Request):
+async def register_school_node(req: RegisterSchoolNodeRequest, request: Request):
     """Register a new school as a node in the network"""
     try:
         exec_msg = {"register_school_node": {
@@ -204,7 +204,7 @@ def register_school_node(req: RegisterSchoolNodeRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edu-cert/school/update")
-def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
+async def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
     """Update an existing school node"""
     try:
         exec_msg = {"update_school_node": {
@@ -219,7 +219,7 @@ def update_school_node(req: UpdateSchoolNodeRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/edu-cert/school/deactivate")
-def deactivate_school_node(req: DeactivateSchoolNodeRequest, request: Request):
+async def deactivate_school_node(req: DeactivateSchoolNodeRequest, request: Request):
     """Deactivate a school node"""
     try:
         exec_msg = {"deactivate_school_node": {

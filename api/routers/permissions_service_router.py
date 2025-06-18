@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.permissions_service import PermissionsService
-from models.node import Node
+from api.services.permissions_service import PermissionsService
+from api.models.node import Node
 import os
 
 router = APIRouter()

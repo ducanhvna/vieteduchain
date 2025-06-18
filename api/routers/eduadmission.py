@@ -101,7 +101,7 @@ def wasm_execute(contract_addr: str, exec_msg: dict, sender: str = "node1"):  # 
         raise HTTPException(status_code=500, detail=f"Blockchain execute failed: {str(e)}")
 
 @router.post("/eduadmission/mint_seat")
-def mint_seat(req: MintSeatRequest, request: Request):
+async def mint_seat(req: MintSeatRequest, request: Request):
     try:
         print(f"Processing mint_seat request for seat_id: {req.seat_id}")
         if is_contract_addr_invalid(EDUADMISSION_CONTRACT_ADDR):
@@ -121,19 +121,19 @@ def mint_seat(req: MintSeatRequest, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/eduadmission/burn_seat")
-def burn_seat(req: BurnSeatRequest, request: Request):
+async def burn_seat(req: BurnSeatRequest, request: Request):
     exec_msg = {"burn_seat_nft": {"seat_id": req.seat_id}}
     sender = request.headers.get("X-Node-Id", "node1")
     return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.post("/eduadmission/push_score")
-def push_score(req: PushScoreRequest, request: Request):
+async def push_score(req: PushScoreRequest, request: Request):
     exec_msg = {"push_score": {"candidate_hash": req.candidate_hash, "score": req.score}}
     sender = request.headers.get("X-Node-Id", "node1")
     return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
 
 @router.post("/eduadmission/run_matching")
-def run_matching(request: Request):
+async def run_matching(request: Request):
     exec_msg = {"run_matching": {}}
     sender = request.headers.get("X-Node-Id", "node1")
     return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
@@ -169,49 +169,20 @@ def list_results():
     query_msg = {"list_admission_results": {}}
     return wasm_query(EDUADMISSION_CONTRACT_ADDR, query_msg)
 
-@router.post("/eduadmission/mint_seat")
-async def mint_seat_mock(request: Request):
-    """Mock endpoint for mint_seat (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    return {"success": True, "seat_id": seat_id}
-
-@router.post("/eduadmission/burn_seat")
-async def burn_seat_mock(request: Request):
-    """Mock endpoint for burn_seat (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    return {"success": True, "seat_id": seat_id, "burned": True}
-
-@router.post("/eduadmission/push_score")
-async def push_score_mock(request: Request):
-    """Mock endpoint for push_score (demo only)"""
-    try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    candidate_hash = data.get("candidate_hash", "mock-candidate-001")
-    score = data.get("score", 10)
-    return {"success": True, "candidate_hash": candidate_hash, "score": score}
-
-@router.post("/eduadmission/run_matching")
-async def run_matching_mock(request: Request):
-    """Mock endpoint for run_matching (demo only)"""
-    return {"success": True, "message": "Matching completed (mock)"}
-
 @router.post("/eduadmission/assign_seat")
-async def assign_seat_mock(request: Request):
-    """Mock endpoint for assign_seat (demo only)"""
+async def assign_seat(request: Request):
+    """
+    Assign a seat to a candidate (gọi vào core).
+    Yêu cầu JSON: { "seat_id": "...", "candidate_hash": "..." }
+    """
     try:
-        data = await request.json() if hasattr(request, 'json') else {}
-    except Exception:
-        data = {}
-    seat_id = data.get("seat_id", "mock-seat-001")
-    candidate_hash = data.get("candidate_hash", "mock-candidate-001")
-    return {"success": True, "seat_id": seat_id, "candidate_hash": candidate_hash, "assigned": True}
+        data = await request.json()
+        seat_id = data.get("seat_id")
+        candidate_hash = data.get("candidate_hash")
+        if not seat_id or not candidate_hash:
+            raise HTTPException(status_code=400, detail="Missing seat_id or candidate_hash")
+        exec_msg = {"assign_seat": {"seat_id": seat_id, "candidate_hash": candidate_hash}}
+        sender = request.headers.get("X-Node-Id", "node1")
+        return wasm_execute(EDUADMISSION_CONTRACT_ADDR, exec_msg, sender)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Assign seat failed: {str(e)}")
