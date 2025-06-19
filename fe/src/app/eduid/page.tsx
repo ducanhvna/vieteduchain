@@ -20,15 +20,31 @@ export default function Page() {
     setMessage('');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edu-id/register`, {
+      const res = await fetch(`${API_BASE_URL}/edu-id/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ did, public_key: publicKey, service_endpoint: serviceEndpoint })
+        body: JSON.stringify({ 
+          base_req: {
+            from: "owner_address",
+            chain_id: "educhain-1"
+          },
+          did_doc: {
+            context: "https://www.w3.org/ns/did/v1",
+            did: did,
+            public_key: publicKey,
+            service_endpoint: serviceEndpoint
+          }
+        })
       });
       const data = await res.json();
       setResult(data);
-      setMessage(data.success ? 'Đăng ký DID thành công!' : data.detail || 'Lỗi đăng ký DID');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Đăng ký DID thành công!' : data.detail || 'Lỗi đăng ký DID');
+      if (data.txhash) {
+        setMessage('Đăng ký DID thành công!');
+        antdMessage.success('Đăng ký DID thành công!');
+      } else {
+        setMessage(data.detail || 'Lỗi đăng ký DID');
+        antdMessage.error(data.detail || 'Lỗi đăng ký DID');
+      }
     } catch (e) {
       setMessage('Lỗi khi gọi API đăng ký DID');
       antdMessage.error('Lỗi khi gọi API đăng ký DID');
@@ -39,15 +55,31 @@ export default function Page() {
     setMessage('');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edu-id/update`, {
+      const res = await fetch(`${API_BASE_URL}/edu-id/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ did, public_key: publicKey, service_endpoint: serviceEndpoint })
+        body: JSON.stringify({ 
+          base_req: {
+            from: "owner_address",
+            chain_id: "educhain-1"
+          },
+          did_doc: {
+            context: "https://www.w3.org/ns/did/v1",
+            did: did,
+            public_key: publicKey,
+            service_endpoint: serviceEndpoint
+          }
+        })
       });
       const data = await res.json();
       setResult(data);
-      setMessage(data.success ? 'Cập nhật DID thành công!' : data.detail || 'Lỗi cập nhật DID');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Cập nhật DID thành công!' : data.detail || 'Lỗi cập nhật DID');
+      if (data.txhash) {
+        setMessage('Cập nhật DID thành công!');
+        antdMessage.success('Cập nhật DID thành công!');
+      } else {
+        setMessage(data.detail || 'Lỗi cập nhật DID');
+        antdMessage.error(data.detail || 'Lỗi cập nhật DID');
+      }
     } catch (e) {
       setMessage('Lỗi khi gọi API cập nhật DID');
       antdMessage.error('Lỗi khi gọi API cập nhật DID');
@@ -58,7 +90,7 @@ export default function Page() {
     setMessage('');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edu-id/get_did?did=${encodeURIComponent(did)}`);
+      const res = await fetch(`${API_BASE_URL}/edu-id/did/${encodeURIComponent(did)}`);
       if (res.ok) {
         const data = await res.json();
         setResult(data);
@@ -78,7 +110,7 @@ export default function Page() {
     setMessage('');
     setResult(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edu-id/get_did_hash?did=${encodeURIComponent(did)}`);
+      const res = await fetch(`${API_BASE_URL}/edu-id/hash/${encodeURIComponent(did)}`);
       if (res.ok) {
         const data = await res.json();
         setResult(data);
@@ -99,7 +131,7 @@ export default function Page() {
     setMessage('');
     setList([]);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edu-id/list`);
+      const res = await fetch(`${API_BASE_URL}/edu-id/list`);
       const data = await res.json();
       if (res.ok) setList(data);
       else {

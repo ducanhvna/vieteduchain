@@ -1,8 +1,0 @@
-[workspace]
-members = [
-    "cosmwasm-contracts/educert",
-    "cosmwasm-contracts/eduid",
-    "cosmwasm-contracts/edupay",
-    "cosmwasm-contracts/researchledger",
-    "cosmwasm-contracts/eduadmission"
-]

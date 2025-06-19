@@ -1,4 +1,0 @@
-[api]
-enable = true
-swagger = true
-address = "tcp://0.0.0.0:1317"

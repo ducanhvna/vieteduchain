@@ -21,24 +21,30 @@ export default function Page() {
   const handleIssueDegree = async (values: any) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/educert/issue_degree`, {
+      const res = await fetch(`${API_BASE_URL}/edu-cert/issue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          student_did: values.studentDid,
-          degree_name: values.degreeName,
-          degree_type: values.degreeType,
-          major: values.major,
-          graduation_date: values.graduationDate.format('YYYY-MM-DD'),
-          gpa: values.gpa,
-          honors: values.honors,
-          institution_did: values.institutionDid,
-          signature_authority: values.signatureAuthority,
-          metadata: values.metadata
+          base_req: {
+            from: "issuer_address",
+            chain_id: "educhain-1"
+          },
+          hash: values.credentialHash || generateCredentialHash(values),
+          metadata: JSON.stringify({
+            student_did: values.studentDid,
+            degree_name: values.degreeName,
+            degree_type: values.degreeType,
+            major: values.major,
+            graduation_date: values.graduationDate.format('YYYY-MM-DD'),
+            gpa: values.gpa,
+            honors: values.honors
+          }),
+          issuer: values.institutionDid,
+          signature: values.signature || generateSignature(values)
         })
       });
       const data = await res.json();
-      if (res.ok) {
+      if (data.height && data.txhash) {
         antdMessage.success('Degree issued successfully!');
         form.resetFields();
         fetchDegrees();
@@ -52,10 +58,22 @@ export default function Page() {
     }
   };
 
+  // Helper function to generate credential hash if not provided
+  const generateCredentialHash = (values: any) => {
+    // In a real application, you would compute a cryptographic hash
+    return `sha256-${Math.random().toString(36).substring(2, 15)}`;
+  };
+
+  // Helper function to generate signature if not provided
+  const generateSignature = (values: any) => {
+    // In a real application, this would be a cryptographic signature
+    return `sig-${Math.random().toString(36).substring(2, 15)}`;
+  };
+
   const fetchDegrees = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/educert/list_degrees`);
+      const res = await fetch(`${API_BASE_URL}/edu-cert/list`);
       if (res.ok) {
         const data = await res.json();
         setDegrees(data);
@@ -69,11 +87,11 @@ export default function Page() {
     }
   };
 
-  const verifyDegree = async (degreeId: string) => {
+  const verifyDegree = async (credentialHash: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/educert/verify_degree?degree_id=${degreeId}`);
+      const res = await fetch(`${API_BASE_URL}/edu-cert/verify/${credentialHash}`);
       const data = await res.json();
-      if (res.ok) {
+      if (res.ok && data.verified) {
         setResult(data);
         antdMessage.success('Degree verification successful!');
       } else {

@@ -19,21 +19,21 @@ export default function Page() {
   const fetchSeats = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_seats`);
+      const res = await fetch(`${API_BASE_URL}/edu-admission/seats`);
       setSeats(await res.json());
     } catch { setMessage('Lỗi khi tải danh sách ghế'); }
   };
   const fetchScores = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_scores`);
+      const res = await fetch(`${API_BASE_URL}/edu-admission/scores`);
       setScores(await res.json());
     } catch { setMessage('Lỗi khi tải điểm'); }
   };
   const fetchResults = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/list_results`);
+      const res = await fetch(`${API_BASE_URL}/edu-admission/results`);
       setResults(await res.json());
     } catch { setMessage('Lỗi khi tải kết quả'); }
   };
@@ -42,51 +42,105 @@ export default function Page() {
   const handleMintSeat = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/mint_seat`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seat_id: seatId })
+      const res = await fetch(`${API_BASE_URL}/edu-admission/mint-seat`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          base_req: {
+            from: "issuer_address",
+            chain_id: "educhain-1"
+          },
+          seat_id: seatId 
+        })
       });
       const data = await res.json();
-      setMessage(data.success ? 'Mint seat thành công!' : data.detail || 'Lỗi mint seat');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Mint seat thành công!' : data.detail || 'Lỗi mint seat');
-      fetchSeats();
+      if (data.height && data.txhash) {
+        setMessage('Mint seat thành công!');
+        antdMessage.success('Mint seat thành công!');
+        fetchSeats();
+      } else {
+        setMessage(data.detail || 'Lỗi mint seat');
+        antdMessage.error(data.detail || 'Lỗi mint seat');
+      }
     } catch { setMessage('Lỗi khi mint seat'); antdMessage.error('Lỗi khi mint seat'); }
   };
+  
   const handleBurnSeat = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/burn_seat`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seat_id: seatId })
+      const res = await fetch(`${API_BASE_URL}/edu-admission/burn-seat`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          base_req: {
+            from: "issuer_address",
+            chain_id: "educhain-1"
+          },
+          seat_id: seatId 
+        })
       });
       const data = await res.json();
-      setMessage(data.success ? 'Burn seat thành công!' : data.detail || 'Lỗi burn seat');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Burn seat thành công!' : data.detail || 'Lỗi burn seat');
-      fetchSeats();
+      if (data.height && data.txhash) {
+        setMessage('Burn seat thành công!');
+        antdMessage.success('Burn seat thành công!');
+        fetchSeats();
+      } else {
+        setMessage(data.detail || 'Lỗi burn seat');
+        antdMessage.error(data.detail || 'Lỗi burn seat');
+      }
     } catch { setMessage('Lỗi khi burn seat'); antdMessage.error('Lỗi khi burn seat'); }
   };
+  
   const handlePushScore = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/push_score`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate_hash: candidateHash, score: parseInt(score) })
+      const res = await fetch(`${API_BASE_URL}/edu-admission/push-score`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          base_req: {
+            from: "issuer_address",
+            chain_id: "educhain-1"
+          },
+          candidate_hash: candidateHash, 
+          score: parseInt(score) 
+        })
       });
       const data = await res.json();
-      setMessage(data.success ? 'Push score thành công!' : data.detail || 'Lỗi push score');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Push score thành công!' : data.detail || 'Lỗi push score');
-      fetchScores();
+      if (data.height && data.txhash) {
+        setMessage('Push score thành công!');
+        antdMessage.success('Push score thành công!');
+        fetchScores();
+      } else {
+        setMessage(data.detail || 'Lỗi push score');
+        antdMessage.error(data.detail || 'Lỗi push score');
+      }
     } catch { setMessage('Lỗi khi push score'); antdMessage.error('Lỗi khi push score'); }
   };
+  
   const handleRunMatching = async () => {
     setMessage('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/eduadmission/run_matching`, { method: 'POST' });
+      const res = await fetch(`${API_BASE_URL}/edu-admission/run-matching`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          base_req: {
+            from: "issuer_address",
+            chain_id: "educhain-1"
+          }
+        })
+      });
       const data = await res.json();
-      setMessage(data.success ? 'Matching thành công!' : data.detail || 'Lỗi matching');
-      antdMessage[data.success ? 'success' : 'error'](data.success ? 'Matching thành công!' : data.detail || 'Lỗi matching');
-      fetchResults();
-      fetchSeats();
+      if (data.height && data.txhash) {
+        setMessage('Matching thành công!');
+        antdMessage.success('Matching thành công!');
+        fetchResults();
+        fetchSeats();
+      } else {
+        setMessage(data.detail || 'Lỗi matching');
+        antdMessage.error(data.detail || 'Lỗi matching');
+      }
     } catch { setMessage('Lỗi khi matching'); antdMessage.error('Lỗi khi matching'); }
   };
   const handleAssignSeat = async () => {

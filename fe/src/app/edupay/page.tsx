@@ -18,6 +18,7 @@ export default function Page() {
   const [proof, setProof] = useState(false);
   const [price, setPrice] = useState<number|null>(null);
   const [tab, setTab] = useState<'balance'|'mint'|'transfer'|'escrow'|'release'|'price'>('balance');
+  const [enrollmentId, setEnrollmentId] = useState('');
 
   const showMsg = (msg: string, type: 'success'|'error' = 'error') => {
     if (type === 'success') antdMessage.success(msg);
@@ -27,9 +28,10 @@ export default function Page() {
   const handleGetBalance = async () => {
     setBalance(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/balance?address=${encodeURIComponent(address)}`);
+      const res = await fetch(`${API_BASE_URL}/cosmos/bank/v1beta1/balances/${encodeURIComponent(address)}`);
       const data = await res.json();
-      setBalance(data.balance);
+      const evndBalance = data.balances.find((b: any) => b.denom === 'evnd') || { amount: '0' };
+      setBalance(parseInt(evndBalance.amount) / 1000000); // Assuming 6 decimals
       showMsg('Lấy số dư thành công!', 'success');
     } catch {
       showMsg('Lỗi khi truy vấn số dư');
@@ -38,14 +40,30 @@ export default function Page() {
 
   const handleMint = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/mint`, {
+      const res = await fetch(`${API_BASE_URL}/edu-pay/mint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, amount: parseFloat(mintAmount) })
+        body: JSON.stringify({ 
+          base_req: {
+            from: "admin_address",
+            chain_id: "educhain-1"
+          },
+          to_address: address, 
+          amount: [
+            {
+              denom: "evnd",
+              amount: (parseFloat(mintAmount) * 1000000).toString() // Convert to atomic units
+            }
+          ]
+        })
       });
       const data = await res.json();
-      setBalance(data.balance);
-      showMsg(data.success ? 'Mint thành công!' : data.detail || 'Lỗi mint', data.success ? 'success' : 'error');
+      if (data.txhash) {
+        showMsg('Mint thành công!', 'success');
+        handleGetBalance(); // Refresh balance
+      } else {
+        showMsg(data.detail || 'Lỗi mint', 'error');
+      }
     } catch {
       showMsg('Lỗi khi mint eVND');
     }
@@ -53,13 +71,29 @@ export default function Page() {
 
   const handleTransfer = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/transfer`, {
+      const res = await fetch(`${API_BASE_URL}/cosmos/bank/v1beta1/msgSend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from_address: address, to_address: transferTo, amount: parseFloat(transferAmount) })
+        body: JSON.stringify({ 
+          base_req: {
+            from: address,
+            chain_id: "educhain-1"
+          },
+          amount: [
+            {
+              denom: "evnd",
+              amount: (parseFloat(transferAmount) * 1000000).toString() // Convert to atomic units
+            }
+          ],
+          to_address: transferTo
+        })
       });
       const data = await res.json();
-      showMsg(data.success ? 'Chuyển tiền thành công!' : data.detail || 'Lỗi chuyển tiền', data.success ? 'success' : 'error');
+      if (data.txhash) {
+        showMsg('Chuyển tiền thành công!', 'success');
+      } else {
+        showMsg(data.detail || 'Lỗi chuyển tiền', 'error');
+      }
     } catch {
       showMsg('Lỗi khi chuyển eVND');
     }
@@ -67,14 +101,32 @@ export default function Page() {
 
   const handleCreateEscrow = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow/create`, {
+      const res = await fetch(`${API_BASE_URL}/edu-pay/create-escrow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ escrow_id: escrowId, payer: address, school: escrowSchool, amount: parseFloat(escrowAmount) })
+        body: JSON.stringify({
+          base_req: {
+            from: address,
+            chain_id: "educhain-1"
+          },
+          recipient: escrowSchool,
+          amount: [
+            {
+              denom: "evnd",
+              amount: (parseFloat(escrowAmount) * 1000000).toString() // Convert to atomic units
+            }
+          ],
+          enrollment_id: enrollmentId || escrowId
+        })
       });
       const data = await res.json();
-      setEscrowInfo(data.escrow);
-      showMsg(data.success ? 'Tạo escrow thành công!' : data.detail || 'Lỗi tạo escrow', data.success ? 'success' : 'error');
+      if (data.escrow_id) {
+        setEscrowId(data.escrow_id);
+        showMsg('Tạo escrow thành công!', 'success');
+        handleGetEscrow(); // Get new escrow info
+      } else {
+        showMsg(data.detail || 'Lỗi tạo escrow', 'error');
+      }
     } catch {
       showMsg('Lỗi khi tạo escrow');
     }
@@ -82,14 +134,26 @@ export default function Page() {
 
   const handleReleaseEscrow = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow/release`, {
+      const res = await fetch(`${API_BASE_URL}/edu-pay/release/${encodeURIComponent(releaseEscrowId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ escrow_id: releaseEscrowId, proof_of_enrollment: proof })
+        body: JSON.stringify({
+          base_req: {
+            from: "authorized_address",
+            chain_id: "educhain-1"
+          }
+        })
       });
       const data = await res.json();
-      setEscrowInfo(data.escrow);
-      showMsg(data.success ? 'Release escrow thành công!' : data.detail || 'Lỗi release escrow', data.success ? 'success' : 'error');
+      if (data.txhash) {
+        showMsg('Release escrow thành công!', 'success');
+        // Get updated escrow info
+        const escrowRes = await fetch(`${API_BASE_URL}/edu-pay/escrow/${encodeURIComponent(releaseEscrowId)}`);
+        const escrowData = await escrowRes.json();
+        setEscrowInfo(escrowData);
+      } else {
+        showMsg(data.detail || 'Lỗi release escrow', 'error');
+      }
     } catch {
       showMsg('Lỗi khi release escrow');
     }
@@ -97,10 +161,14 @@ export default function Page() {
 
   const handleGetEscrow = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/edupay/escrow?escrow_id=${encodeURIComponent(escrowId)}`);
+      const res = await fetch(`${API_BASE_URL}/edu-pay/escrow/${encodeURIComponent(escrowId)}`);
       const data = await res.json();
-      setEscrowInfo(data);
-      showMsg('Lấy thông tin escrow thành công!', 'success');
+      if (data.escrow_id) {
+        setEscrowInfo(data);
+        showMsg('Lấy thông tin escrow thành công!', 'success');
+      } else {
+        showMsg(data.detail || 'Không tìm thấy escrow', 'error');
+      }
     } catch {
       showMsg('Lỗi khi truy vấn escrow');
     }

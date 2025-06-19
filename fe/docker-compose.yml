@@ -10,5 +10,5 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8279
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:1317
       - NODE_ID=node1
