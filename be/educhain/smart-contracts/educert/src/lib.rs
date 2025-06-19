@@ -1,5 +1,5 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_json_binary, from_json, QueryRequest, Uint128, Addr, Order};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, from_binary, QueryRequest, Uint128, Addr, Order};
 use schemars::JsonSchema;
 
 // Import NFT extension
@@ -98,7 +98,7 @@ pub fn instantiate(_deps: DepsMut, _env: Env, _info: MessageInfo, _msg: ()) -> S
 
 #[entry_point]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdResult<Response> {
-    let exec: ExecuteMsg = from_json(&msg)?;
+    let exec: ExecuteMsg = from_binary(&msg)?;
     match exec {
         ExecuteMsg::IssueVC { hash, metadata, issuer, signature } => {
             let key = format!("{}{}", PREFIX, hash);
@@ -110,7 +110,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdRe
                 revoked: false,
                 nft_token_id: None,
             };
-            deps.storage.set(key.as_bytes(), &to_json_binary(&cred)?);
+            deps.storage.set(key.as_bytes(), &to_binary(&cred)?);
             
             // Record transaction
             record_transaction(deps, &env, &info.sender, "issue_vc", &hash)?;
@@ -120,9 +120,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: Binary) -> StdRe
         ExecuteMsg::RevokeVC { hash } => {
             let key = format!("{}{}", PREFIX, hash);
             let cred_bin = deps.storage.get(key.as_bytes()).ok_or(StdError::not_found("Credential"))?;
-            let mut cred: Credential = from_json(&Binary(cred_bin))?;
+            let mut cred: Credential = from_binary(&Binary(cred_bin))?;
             cred.revoked = true;
-            deps.storage.set(key.as_bytes(), &to_json_binary(&cred)?);
+            deps.storage.set(key.as_bytes(), &to_binary(&cred)?);
             
             // Record transaction
             record_transaction(deps, &env, &info.sender, "revoke_vc", &hash)?;
@@ -161,7 +161,7 @@ fn mint_nft(deps: DepsMut, env: Env, info: MessageInfo, token_id: String, creden
     // Check if credential exists
     let cred_key = format!("{}{}", PREFIX, credential_hash);
     let cred_bin = deps.storage.get(cred_key.as_bytes()).ok_or(StdError::not_found("Credential"))?;
-    let mut cred: Credential = from_json(&Binary(cred_bin))?;
+    let mut cred: Credential = from_binary(&Binary(cred_bin))?;
     
     // Create NFT
     let recipient_addr = deps.api.addr_validate(&recipient)?;
@@ -176,11 +176,11 @@ fn mint_nft(deps: DepsMut, env: Env, info: MessageInfo, token_id: String, creden
     };
     
     // Store NFT
-    deps.storage.set(&nft_key, &to_json_binary(&nft)?);
+    deps.storage.set(&nft_key, &to_binary(&nft)?);
     
     // Update credential with NFT token ID
     cred.nft_token_id = Some(token_id.clone());
-    deps.storage.set(cred_key.as_bytes(), &to_json_binary(&cred)?);
+    deps.storage.set(cred_key.as_bytes(), &to_binary(&cred)?);
     
     // Record transaction
     record_transaction(deps, &env, &info.sender, "mint_nft", &format!("token_id: {}, credential: {}", token_id, credential_hash))?;
@@ -196,7 +196,7 @@ fn transfer_nft(deps: DepsMut, env: Env, info: MessageInfo, token_id: String, re
     // Get NFT
     let key = nft_key(&token_id);
     let nft_bin = deps.storage.get(&key).ok_or(StdError::not_found("NFT"))?;
-    let mut nft: CredentialNFT = from_json(&Binary(nft_bin))?;
+    let mut nft: CredentialNFT = from_binary(&Binary(nft_bin))?;
     
     // Check ownership
     if nft.owner != info.sender {
@@ -209,7 +209,7 @@ fn transfer_nft(deps: DepsMut, env: Env, info: MessageInfo, token_id: String, re
     nft.transferred = true;
     
     // Save updated NFT
-    deps.storage.set(&key, &to_json_binary(&nft)?);
+    deps.storage.set(&key, &to_binary(&nft)?);
     
     // Record transaction
     record_transaction(deps, &env, &info.sender, "transfer_nft", &format!("token_id: {}, to: {}", token_id, recipient))?;
@@ -224,7 +224,7 @@ fn burn_nft(deps: DepsMut, env: Env, info: MessageInfo, token_id: String) -> Std
     // Get NFT
     let key = nft_key(&token_id);
     let nft_bin = deps.storage.get(&key).ok_or(StdError::not_found("NFT"))?;
-    let nft: CredentialNFT = from_json(&Binary(nft_bin))?;
+    let nft: CredentialNFT = from_binary(&Binary(nft_bin))?;
     
     // Check ownership or issuer rights
     if nft.owner != info.sender && nft.issuer != info.sender {
@@ -262,7 +262,7 @@ fn register_school_node(deps: DepsMut, env: Env, info: MessageInfo, did: String,
     };
     
     // Store school node
-    deps.storage.set(&key, &to_json_binary(&school)?);
+    deps.storage.set(&key, &to_binary(&school)?);
     
     // Record transaction
     record_transaction(deps, &env, &info.sender, "register_school", &format!("did: {}", did))?;
@@ -277,7 +277,7 @@ fn update_school_node(deps: DepsMut, env: Env, info: MessageInfo, did: String, n
     // Get school node
     let key = school_node_key(&did);
     let school_bin = deps.storage.get(&key).ok_or(StdError::not_found("School Node"))?;
-    let mut school: SchoolNode = from_json(&Binary(school_bin))?;
+    let mut school: SchoolNode = from_binary(&Binary(school_bin))?;
     
     // Check ownership
     if school.address != info.sender {
@@ -296,7 +296,7 @@ fn update_school_node(deps: DepsMut, env: Env, info: MessageInfo, did: String, n
     }
     
     // Save updated school node
-    deps.storage.set(&key, &to_json_binary(&school)?);
+    deps.storage.set(&key, &to_binary(&school)?);
     
     // Record transaction
     record_transaction(deps, &env, &info.sender, "update_school", &format!("did: {}", did))?;
@@ -310,7 +310,7 @@ fn deactivate_school_node(deps: DepsMut, env: Env, info: MessageInfo, did: Strin
     // Get school node
     let key = school_node_key(&did);
     let school_bin = deps.storage.get(&key).ok_or(StdError::not_found("School Node"))?;
-    let mut school: SchoolNode = from_json(&Binary(school_bin))?;
+    let mut school: SchoolNode = from_binary(&Binary(school_bin))?;
     
     // Check ownership
     if school.address != info.sender {
@@ -321,7 +321,7 @@ fn deactivate_school_node(deps: DepsMut, env: Env, info: MessageInfo, did: Strin
     school.active = false;
     
     // Save updated school node
-    deps.storage.set(&key, &to_json_binary(&school)?);
+    deps.storage.set(&key, &to_binary(&school)?);
     
     // Record transaction
     record_transaction(deps, &env, &info.sender, "deactivate_school", &format!("did: {}", did))?;
@@ -344,61 +344,61 @@ fn record_transaction(deps: DepsMut, env: &Env, sender: &Addr, tx_type: &str, de
         timestamp: env.block.time.seconds(),
     };
     
-    deps.storage.set(&key, &to_json_binary(&tx_record)?);
+    deps.storage.set(&key, &to_binary(&tx_record)?);
     Ok(())
 }
 
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: Binary) -> StdResult<Binary> {
-    let query: QueryMsg = from_json(&msg)?;
+    let query: QueryMsg = from_binary(&msg)?;
     match query {
         QueryMsg::IsRevoked { hash } => {
             let key = format!("{}{}", PREFIX, hash);
             let cred_bin = deps.storage.get(key.as_bytes());
             let revoked = if let Some(bin) = cred_bin {
-                let cred: Credential = from_json(&Binary(bin))?;
+                let cred: Credential = from_binary(&Binary(bin))?;
                 cred.revoked
             } else {
                 false
             };
-            to_json_binary(&revoked)
+            to_binary(&revoked)
         },
         QueryMsg::GetCredential { hash } => {
             let key = format!("{}{}", PREFIX, hash);
             let cred_bin = deps.storage.get(key.as_bytes()).ok_or(StdError::not_found("Credential"))?;
-            to_json_binary(&from_json::<Credential>(&Binary(cred_bin))?)
+            to_binary(&from_binary::<Credential>(&Binary(cred_bin))?)
         },
         QueryMsg::GetCredentialNFT { token_id } => {
             let key = nft_key(&token_id);
             let nft_bin = deps.storage.get(&key).ok_or(StdError::not_found("NFT"))?;
-            to_json_binary(&from_json::<CredentialNFT>(&Binary(nft_bin))?)
+            to_binary(&from_binary::<CredentialNFT>(&Binary(nft_bin))?)
         },
         QueryMsg::GetNFTsByOwner { owner } => {
             let owner_addr = deps.api.addr_validate(&owner)?;
             let nfts = query_nfts_by_owner(deps, &owner_addr)?;
-            to_json_binary(&nfts)
+            to_binary(&nfts)
         },
         QueryMsg::GetNFTsByIssuer { issuer } => {
             let issuer_addr = deps.api.addr_validate(&issuer)?;
             let nfts = query_nfts_by_issuer(deps, &issuer_addr)?;
-            to_json_binary(&nfts)
+            to_binary(&nfts)
         },
         QueryMsg::GetSchoolNode { did } => {
             let key = school_node_key(&did);
             let school_bin = deps.storage.get(&key).ok_or(StdError::not_found("School Node"))?;
-            to_json_binary(&from_json::<SchoolNode>(&Binary(school_bin))?)
+            to_binary(&from_binary::<SchoolNode>(&Binary(school_bin))?)
         },
         QueryMsg::ListSchoolNodes { active_only } => {
             let schools = query_school_nodes(deps, active_only)?;
-            to_json_binary(&schools)
+            to_binary(&schools)
         },
         QueryMsg::GetTransactionHistory { limit } => {
             let transactions = query_transaction_history(deps, limit)?;
-            to_json_binary(&transactions)
+            to_binary(&transactions)
         },
         QueryMsg::GenerateQRCodeData { data_type, id } => {
             let qr_data = generate_qr_code_data(data_type, id)?;
-            to_json_binary(&qr_data)
+            to_binary(&qr_data)
         },
     }
 }
@@ -408,9 +408,9 @@ fn query_nfts_by_owner(deps: Deps, owner: &Addr) -> StdResult<Vec<CredentialNFT>
     let mut nfts = Vec::new();
     let nft_prefix = NFT_PREFIX.as_bytes();
     
-    for item in deps.storage.range(Some(nft_prefix), None, Order::Ascending) {
+    for item in deps.storage.range(Some(nft_prefix.to_vec()), None, Order::Ascending) {
         if let Ok((_, value)) = item {
-            let nft: CredentialNFT = from_json(&Binary(value))?;
+            let nft: CredentialNFT = from_binary(&Binary(value))?;
             if nft.owner == *owner {
                 nfts.push(nft);
             }
@@ -426,7 +426,7 @@ fn query_nfts_by_issuer(deps: Deps, issuer: &Addr) -> StdResult<Vec<CredentialNF
     
     for item in deps.storage.range(Some(nft_prefix), None, Order::Ascending) {
         if let Ok((_, value)) = item {
-            let nft: CredentialNFT = from_json(&Binary(value))?;
+            let nft: CredentialNFT = from_binary(&Binary(value))?;
             if nft.issuer == *issuer {
                 nfts.push(nft);
             }
@@ -442,7 +442,7 @@ fn query_school_nodes(deps: Deps, active_only: Option<bool>) -> StdResult<Vec<Sc
     
     for item in deps.storage.range(Some(school_prefix), None, Order::Ascending) {
         if let Ok((_, value)) = item {
-            let school: SchoolNode = from_json(&Binary(value))?;
+            let school: SchoolNode = from_binary(&Binary(value))?;
             if let Some(true) = active_only {
                 if school.active {
                     schools.push(school);
@@ -463,7 +463,7 @@ fn query_transaction_history(deps: Deps, limit: Option<u32>) -> StdResult<Vec<Tr
     
     for item in deps.storage.range(Some(tx_prefix), None, Order::Descending) {
         if let Ok((_, value)) = item {
-            let tx: TransactionRecord = from_json(&Binary(value))?;
+            let tx: TransactionRecord = from_binary(&Binary(value))?;
             transactions.push(tx);
             
             if transactions.len() >= limit {

@@ -6,8 +6,15 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+default = []
+
 [dependencies]
-cosmwasm-std = { version = "0.16.7", features = ["serde"] }
+cosmwasm-std = { version = "0.16.7", features = ["staking"] }
 cosmwasm-storage = "0.16.7"
 cw-storage-plus = "0.9.1"
 schemars = "0.8.8"
@@ -19,6 +26,13 @@ sha2 = "0.10.2"
 cosmwasm-schema = "0.16.7"
 cw-multi-test = "0.9.1"
 
-[features]
-default = ["std"]
-std = []
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true

@@ -1,0 +1,1 @@
+8c0c3cf59ceb47d21d2e33457a63fb7ae1bc03f17afc70797706f18b4dabbe33  ./target/wasm32-unknown-unknown/release/edupay.wasm

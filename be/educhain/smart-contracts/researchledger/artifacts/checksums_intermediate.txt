@@ -1,0 +1,1 @@
+deb89043506b0628b9b1bd2c772d61057648038055f279016161f3ff98464fde  ./target/wasm32-unknown-unknown/release/researchledger.wasm
