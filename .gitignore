@@ -24,3 +24,5 @@ node_modules
 __pycache__
 deploy/dummy_data/
 core/cosmos-core
+be/educhain/smart-contracts/educert/target/
+be/educhain/deployments/devnet/data/data/

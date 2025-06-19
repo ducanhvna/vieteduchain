@@ -1,5 +1,5 @@
 // NFT extension for EduCert contract
-use cosmwasm_std::{Addr, Binary, Uint128};
+use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
