@@ -1,5 +1,5 @@
 // Minimal contract entry for CosmWasm
-use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, from_binary, QueryRequest, Addr, Storage};
+use cosmwasm_std::{entry_point, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Binary, to_binary, from_binary};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -58,7 +58,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: Binary) -> StdR
     }
 }
 
-fn try_register_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> StdResult<Response> {
+fn try_register_did(deps: DepsMut, _info: MessageInfo, did_doc: DIDDocument) -> StdResult<Response> {
     let did = did_doc.id.clone();
     let key = did_doc_key(&did);
     // Check if DID already exists
@@ -69,13 +69,13 @@ fn try_register_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> S
     deps.storage.set(&key, doc_bin.as_slice());
     // Hash and store hash
     let mut hasher = Sha256::new();
-    hasher.update(&doc_bin);
+    hasher.update(&*doc_bin);
     let hash = hasher.finalize();
     deps.storage.set(&did_hash_key(&did), &hash);
     Ok(Response::new().add_attribute("action", "register_did").add_attribute("did", did))
 }
 
-fn try_update_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> StdResult<Response> {
+fn try_update_did(deps: DepsMut, _info: MessageInfo, did_doc: DIDDocument) -> StdResult<Response> {
     let did = did_doc.id.clone();
     let key = did_doc_key(&did);
     // Only allow update if DID exists
@@ -86,7 +86,7 @@ fn try_update_did(deps: DepsMut, info: MessageInfo, did_doc: DIDDocument) -> Std
     deps.storage.set(&key, doc_bin.as_slice());
     // Hash and store hash
     let mut hasher = Sha256::new();
-    hasher.update(&doc_bin);
+    hasher.update(&*doc_bin);
     let hash = hasher.finalize();
     deps.storage.set(&did_hash_key(&did), &hash);
     Ok(Response::new().add_attribute("action", "update_did").add_attribute("did", did))

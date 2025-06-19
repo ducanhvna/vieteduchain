@@ -26,3 +26,4 @@ deploy/dummy_data/
 core/cosmos-core
 be/educhain/smart-contracts/educert/target/
 be/educhain/deployments/devnet/data/data/
+be/educhain/smart-contracts/eduid/target/
