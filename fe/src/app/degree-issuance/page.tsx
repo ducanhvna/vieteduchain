@@ -21,7 +21,7 @@ export default function Page() {
   const handleIssueDegree = async (values: any) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/edu-cert/issue`, {
+``      const res = await fetch(`${API_BASE_URL}/edu-cert/issue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
