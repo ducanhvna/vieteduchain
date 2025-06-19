@@ -1,0 +1,61 @@
+{
+  "genesis_time": "2023-10-01T00:00:00Z",
+  "chain_id": "educhain-devnet-1",
+  "initial_height": "0",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "20000000"
+    },
+    "evidence": {
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "17280000000000"
+    },
+    "validator": {
+      "pub_key_types": ["ed25519"]
+    }
+  },
+  "validators": [
+    {
+      "address": "validator_address_here",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "validator_public_key_here"
+      },
+      "power": "10",
+      "name": "Validator Name"
+    }
+  ],
+  "app_state": {
+    "auth": {
+      "accounts": []
+    },
+    "bank": {
+      "balances": [],
+      "supply": []
+    },
+    "staking": {
+      "validators": [],
+      "delegations": []
+    },
+    "gov": {
+      "proposals": [],
+      "deposit_params": {
+        "min_deposit": [],
+        "max_deposit_period": "172800000000"
+      },
+      "voting_params": {
+        "voting_period": "172800000000"
+      }
+    },
+    "ibc": {
+      "clients": [],
+      "connections": [],
+      "channels": []
+    },
+    "custom_module": {
+      "data": []
+    }
+  },
+  "signatures": []
+}

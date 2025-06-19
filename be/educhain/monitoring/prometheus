@@ -1,0 +1,23 @@
+# Prometheus configuration for monitoring the EduChain blockchain
+
+global:
+  scrape_interval: 15s  # Default scrape interval for all targets
+
+scrape_configs:
+  - job_name: 'educhain'
+    static_configs:
+      - targets: ['localhost:26657']  # Replace with the actual RPC endpoint of your blockchain node
+        labels:
+          group: 'blockchain'  # Custom label for grouping purposes
+
+  - job_name: 'smart_contracts'
+    static_configs:
+      - targets: ['localhost:1317']  # Replace with the actual REST API endpoint for smart contracts
+        labels:
+          group: 'contracts'  # Custom label for grouping smart contract metrics
+
+  - job_name: 'monitoring'
+    static_configs:
+      - targets: ['localhost:9090']  # Replace with the actual Prometheus server endpoint
+        labels:
+          group: 'monitoring'  # Custom label for monitoring metrics

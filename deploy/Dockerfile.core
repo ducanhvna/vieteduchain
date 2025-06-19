@@ -16,6 +16,10 @@ COPY --from=builder /app/cosmos-permissioned-network ./cosmos-permissioned-netwo
 COPY --chmod=755 deploy/entrypoint_core.sh ./entrypoint_core.sh
 RUN chmod +x ./cosmos-permissioned-network && chmod +x ./entrypoint_core.sh
 
+# Copy app.toml cấu hình API vào đúng thư mục cấu hình
+RUN mkdir -p /root/.appd/config
+COPY deploy/config/app.toml /root/.appd/config/app.toml
+
 # Copy contract source code for building WASM inside core image
 COPY cosmwasm-contracts/cosmwasm-contracts /code/cosmwasm-contracts
 
@@ -24,6 +28,12 @@ RUN apk add --no-cache bash curl make gcc musl-dev openssl-dev git rust cargo &&
     curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     source $HOME/.cargo/env && \
     rustup target add wasm32-unknown-unknown && \
+    # Clone wasmd (CosmWasm chain) và checkout version phù hợp
+    git clone https://github.com/CosmWasm/wasmd.git /opt/wasmd && \
+    cd /opt/wasmd && git checkout v0.50.0 && \
+    cd /app && \
+    # Clone Cosmos SDK (nếu cần)
+    git clone https://github.com/cosmos/cosmos-sdk.git /opt/cosmos-sdk && \
     for d in /code/cosmwasm-contracts/*/ ; do \
       if [ -f "$d/Cargo.toml" ]; then \
         cd "$d" && cargo build --release --target wasm32-unknown-unknown ; \

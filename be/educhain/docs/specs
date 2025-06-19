@@ -1,0 +1,52 @@
+# EduChain Project Specifications
+
+## Overview
+EduChain is a blockchain project built using the Cosmos SDK, designed to facilitate educational processes through decentralized applications and smart contracts. The project aims to enhance transparency, security, and efficiency in various educational operations, including credential issuance, identity management, payment processing, research integrity, and admission transparency.
+
+## Core Components
+
+### 1. Core Blockchain (Layer-1)
+- **Technology Stack**: Cosmos SDK, HotStuff consensus algorithm, Directed Acyclic Graph (DAG) mempool, Block-STM.
+- **Purpose**: Ensure long-term performance and scalability of the blockchain.
+
+### 2. Functional Modules
+EduChain consists of five main functional modules, each implemented as independent CosmWasm smart contracts:
+- **EduCert**: Manages the issuance and revocation of verifiable credentials.
+- **EduID**: Provides self-sovereign identity management.
+- **EduPay**: Facilitates tuition payments and scholarship disbursements.
+- **ResearchLedger**: Ensures research integrity and prevents plagiarism.
+- **EduAdmission**: Enhances transparency in the admission process.
+
+### 3. API & SDK
+- **REST/gRPC**: For backend communication.
+- **GraphQL**: Optional API for flexible data queries.
+- **JavaScript/Flutter SDK**: Light-client libraries for integration with Learning Management Systems (LMS) and mobile wallets.
+
+### 4. Interoperability Infrastructure
+- **IBC Relay**: Configuration and integration for Inter-Blockchain Communication (IBC).
+- **ICS-20**: Stablecoin bridge for cross-chain transactions.
+- **Cross-chain Seat Transfer**: Facilitates the transfer of educational credentials across different blockchains.
+
+### 5. Monitoring & Explorer Tools
+- **Prometheus & Grafana**: For real-time monitoring and visualization of blockchain metrics.
+- **BigDipper & Cosmos-Graph**: Frontend applications for exploring blockchain data.
+
+### 6. Legal Framework & Compliance
+- **GDPR Mapping**: Documentation to ensure compliance with the General Data Protection Regulation.
+- **PDPA Compliance**: Adherence to the Personal Data Protection Act in Vietnam.
+
+## Design Principles
+- **Open-First**: Prioritize open-source development with Apache-2.0 or GPL-compatible licenses.
+- **Interoperability by Design**: Ensure all modules are IBC-compatible and utilize JSON-LD/VC data standards.
+- **Security & Privacy by Default**: Integrate Zero-Knowledge Proofs (ZKP) for selective disclosure and end-to-end encryption of sensitive data.
+- **User-Centric**: Empower users with self-sovereign identity (DID) management and social recovery mechanisms for wallets.
+
+## Module Relationships
+Each functional module communicates through internal messages and can be upgraded using the migration mechanism of the Cosmos SDK. Sensitive data is not stored directly on-chain; instead, only hashes and metadata are recorded.
+
+### Example Workflow: EduCert
+1. University issues a credential via POST /edu-cert/issue.
+2. Student receives a QR code for the credential stored in their wallet.
+3. Employer scans the QR code, and the contract verifies the credential instantly.
+
+This specification outlines the foundational elements of the EduChain project, emphasizing its commitment to innovation in the educational sector through blockchain technology.
