@@ -30,9 +30,11 @@ mkdir -p ./config
 # Check if image exists
 if ! docker images cosmwasm/wasmd:v0.50.0-patched | grep -q v0.50.0-patched; then
   echo "Building Docker image cosmwasm/wasmd:v0.50.0-patched..."
-  docker build -t cosmwasm/wasmd:v0.50.0-patched -f Dockerfile.fixed .
+  docker build -t cosmwasm/wasmd:v0.50.0-patched -f Dockerfile.complete .
 else
   echo "Using existing Docker image cosmwasm/wasmd:v0.50.0-patched"
+  echo "To rebuild the image, run: docker rmi cosmwasm/wasmd:v0.50.0-patched"
+  echo "Then run this script again."
 fi
 
 # Run initialization steps in a consistent environment
@@ -107,10 +109,12 @@ docker run -d \
   -p 26656:26656 \
   -p 26657:26657 \
   -p 1317:1317 \
+  -p 1318:1318 \
   -p 9090:9090 \
+  -e VALIDATOR_ADDRESS="$VALIDATOR_ADDRESS" \
   -v $(pwd)/data:/root/.wasmd \
-  cosmwasm/wasmd:v0.50.0-patched \
-  start
+  --entrypoint /entrypoint.sh \
+  cosmwasm/wasmd:v0.50.0-patched
 
 echo "Container is starting. Waiting for it to initialize..."
 sleep 5
@@ -122,6 +126,7 @@ if docker ps | grep -q wasm-node; then
   echo "Blockchain node is running with the following services:"
   echo "- RPC: http://localhost:26657"
   echo "- REST API: http://localhost:1317"
+  echo "- Custom nodeinfo REST API: http://localhost:1318"
   echo "- gRPC: http://localhost:9090"
   echo "==============================================================="
   echo "Validator address: $VALIDATOR_ADDRESS"

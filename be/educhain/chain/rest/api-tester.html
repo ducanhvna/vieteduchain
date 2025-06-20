@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduChain API Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+        .sidebar {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .main {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .endpoint-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .endpoint-list li {
+            padding: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .endpoint-list li:hover {
+            background-color: #f0f0f0;
+        }
+        .endpoint-list li.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .endpoint-detail {
+            margin-bottom: 20px;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .response-container {
+            margin-top: 20px;
+        }
+        .response-headers {
+            font-family: monospace;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .response-body {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            overflow: auto;
+            max-height: 400px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>EduChain API Tester</h1>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h3>Endpoints</h3>
+            <ul class="endpoint-list" id="endpoint-list">
+                <li data-endpoint="nodeinfo" class="active">Node Info</li>
+                <li data-endpoint="params">Chain Parameters</li>
+                <li data-endpoint="validators">Validators</li>
+                <li data-endpoint="dids">List DIDs</li>
+                <li data-endpoint="did-by-id">Get DID by ID</li>
+                <li data-endpoint="credentials">Credentials for DID</li>
+                <li data-endpoint="verify-credential">Verify Credential</li>
+                <li data-endpoint="revoke-credential">Revoke Credential</li>
+                <li data-endpoint="health">Health Check</li>
+            </ul>
+        </div>
+        
+        <div class="main">
+            <div class="endpoint-detail">
+                <h2 id="endpoint-title">Node Info</h2>
+                <div class="endpoint-url" id="endpoint-url">GET http://localhost:1318/api/v1/nodeinfo</div>
+                
+                <div id="params-container"></div>
+                
+                <button id="send-request">Send Request</button>
+            </div>
+            
+            <div class="response-container" id="response-container" style="display: none;">
+                <h3>Response</h3>
+                <div class="response-headers" id="response-headers"></div>
+                <div class="response-body" id="response-body"></div>
+            </div>
+            
+            <div class="loading" id="loading" style="display: none;">
+                Sending request...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API base URL
+        const BASE_URL = 'http://localhost:1318/api/v1';
+        
+        // Endpoint configurations
+        const endpoints = {
+            'nodeinfo': {
+                title: 'Node Info',
+                method: 'GET',
+                url: `${BASE_URL}/nodeinfo`,
+                params: []
+            },
+            'params': {
+                title: 'Chain Parameters',
+                method: 'GET',
+                url: `${BASE_URL}/params`,
+                params: []
+            },
+            'validators': {
+                title: 'Validators',
+                method: 'GET',
+                url: `${BASE_URL}/validators`,
+                params: []
+            },
+            'dids': {
+                title: 'List DIDs',
+                method: 'GET',
+                url: `${BASE_URL}/dids`,
+                params: [
+                    { name: 'type', label: 'Type Filter', type: 'text', placeholder: 'e.g., student, institution, certifier' }
+                ]
+            },
+            'did-by-id': {
+                title: 'Get DID by ID',
+                method: 'GET',
+                url: `${BASE_URL}/dids/`,
+                params: [
+                    { name: 'id', label: 'DID ID', type: 'text', placeholder: 'e.g., did:eduid:student1', required: true }
+                ]
+            },
+            'credentials': {
+                title: 'Credentials for DID',
+                method: 'GET',
+                url: `${BASE_URL}/credentials`,
+                params: [
+                    { name: 'did', label: 'DID', type: 'text', placeholder: 'e.g., did:eduid:student1', required: true }
+                ]
+            },
+            'verify-credential': {
+                title: 'Verify Credential',
+                method: 'POST',
+                url: `${BASE_URL}/credentials/verify`,
+                params: [
+                    { name: 'body', label: 'Request Body', type: 'json', placeholder: '{\n  "credential_id": "http://educhain.example/credentials/3732"\n}', required: true }
+                ]
+            },
+            'revoke-credential': {
+                title: 'Revoke Credential',
+                method: 'POST',
+                url: `${BASE_URL}/credentials/revoke`,
+                params: [
+                    { name: 'body', label: 'Request Body', type: 'json', placeholder: '{\n  "credential_id": "http://educhain.example/credentials/3732",\n  "reason": "Incorrect information"\n}', required: true }
+                ]
+            },
+            'health': {
+                title: 'Health Check',
+                method: 'GET',
+                url: `${BASE_URL.replace('/api/v1', '')}/health`,
+                params: []
+            }
+        };
+        
+        // DOM elements
+        const endpointList = document.getElementById('endpoint-list');
+        const endpointTitle = document.getElementById('endpoint-title');
+        const endpointUrl = document.getElementById('endpoint-url');
+        const paramsContainer = document.getElementById('params-container');
+        const sendRequestBtn = document.getElementById('send-request');
+        const responseContainer = document.getElementById('response-container');
+        const responseHeaders = document.getElementById('response-headers');
+        const responseBody = document.getElementById('response-body');
+        const loadingIndicator = document.getElementById('loading');
+        
+        // Current endpoint
+        let currentEndpoint = 'nodeinfo';
+        
+        // Initialize
+        function init() {
+            // Set up endpoint list click handlers
+            for (const li of endpointList.children) {
+                li.addEventListener('click', () => {
+                    // Update active class
+                    for (const item of endpointList.children) {
+                        item.classList.remove('active');
+                    }
+                    li.classList.add('active');
+                    
+                    // Set current endpoint
+                    currentEndpoint = li.dataset.endpoint;
+                    
+                    // Update UI
+                    updateEndpointUI();
+                });
+            }
+            
+            // Set up send request button
+            sendRequestBtn.addEventListener('click', sendRequest);
+            
+            // Initial UI update
+            updateEndpointUI();
+        }
+        
+        // Update the UI for the current endpoint
+        function updateEndpointUI() {
+            const endpoint = endpoints[currentEndpoint];
+            
+            // Update title and URL
+            endpointTitle.textContent = endpoint.title;
+            endpointUrl.textContent = `${endpoint.method} ${endpoint.url}`;
+            
+            // Update params
+            paramsContainer.innerHTML = '';
+            
+            endpoint.params.forEach(param => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.textContent = param.label;
+                if (param.required) {
+                    label.textContent += ' *';
+                }
+                formGroup.appendChild(label);
+                
+                if (param.type === 'json') {
+                    const textarea = document.createElement('textarea');
+                    textarea.id = `param-${param.name}`;
+                    textarea.placeholder = param.placeholder || '';
+                    formGroup.appendChild(textarea);
+                } else {
+                    const input = document.createElement('input');
+                    input.id = `param-${param.name}`;
+                    input.type = param.type || 'text';
+                    input.placeholder = param.placeholder || '';
+                    formGroup.appendChild(input);
+                }
+                
+                paramsContainer.appendChild(formGroup);
+            });
+            
+            // Hide response
+            responseContainer.style.display = 'none';
+        }
+        
+        // Send API request
+        async function sendRequest() {
+            const endpoint = endpoints[currentEndpoint];
+            
+            // Validate required params
+            for (const param of endpoint.params) {
+                if (param.required) {
+                    const value = document.getElementById(`param-${param.name}`).value;
+                    if (!value) {
+                        alert(`${param.label} is required`);
+                        return;
+                    }
+                }
+            }
+            
+            // Build URL with query params or path params
+            let url = endpoint.url;
+            const queryParams = new URLSearchParams();
+            
+            for (const param of endpoint.params) {
+                const value = document.getElementById(`param-${param.name}`).value;
+                
+                if (value) {
+                    if (param.name === 'id') {
+                        // Path parameter
+                        url = `${endpoint.url}${value}`;
+                    } else if (param.name !== 'body') {
+                        // Query parameter
+                        queryParams.append(param.name, value);
+                    }
+                }
+            }
+            
+            // Add query params to URL if any
+            if (queryParams.toString()) {
+                url = `${url}?${queryParams.toString()}`;
+            }
+            
+            // Request options
+            const options = {
+                method: endpoint.method
+            };
+            
+            // Add body if POST request
+            if (endpoint.method === 'POST') {
+                const bodyParam = endpoint.params.find(p => p.name === 'body');
+                if (bodyParam) {
+                    const bodyValue = document.getElementById(`param-${bodyParam.name}`).value;
+                    try {
+                        options.body = bodyValue;
+                        options.headers = {
+                            'Content-Type': 'application/json'
+                        };
+                    } catch (e) {
+                        alert('Invalid JSON body');
+                        return;
+                    }
+                }
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            responseContainer.style.display = 'none';
+            
+            try {
+                // Send request
+                const response = await fetch(url, options);
+                
+                // Display headers
+                let headersText = `Status: ${response.status} ${response.statusText}\n`;
+                response.headers.forEach((value, name) => {
+                    headersText += `${name}: ${value}\n`;
+                });
+                responseHeaders.textContent = headersText;
+                
+                // Display body
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const json = await response.json();
+                    responseBody.textContent = JSON.stringify(json, null, 2);
+                } else {
+                    const text = await response.text();
+                    responseBody.textContent = text;
+                }
+                
+                // Show response
+                responseContainer.style.display = 'block';
+            } catch (error) {
+                responseHeaders.textContent = 'Error';
+                responseBody.textContent = error.toString();
+                responseContainer.style.display = 'block';
+            } finally {
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
