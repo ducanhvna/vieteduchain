@@ -145,6 +145,7 @@ docker run -d \
   -p 9090:9090 \
   -v $(pwd)/data:/root/.wasmd \
   -v $(pwd)/start_node.sh:/root/start_node.sh \
+  -v $(pwd)/../../chain:/chain \
   cosmos-wasmd-allinone
 
 # Check if container started successfully
