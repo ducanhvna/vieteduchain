@@ -21,7 +21,7 @@ RUN git clone https://github.com/CosmWasm/wasmd.git .
 RUN git checkout v0.50.0  # Choose appropriate CosmWasm-supported version
 
 # Apply the patch if it exists
-COPY wasmd.patch /tmp/wasmd.patch
+# COPY wasmd.patch /tmp/wasmd.patch
 RUN if [ -f /tmp/wasmd.patch ]; then git apply /tmp/wasmd.patch || echo "Patch may have already been applied or doesn't apply cleanly"; fi
 
 # Detect architecture and download the appropriate libwasmvm library
@@ -71,8 +71,34 @@ ENV LD_LIBRARY_PATH="/usr/lib"
 COPY --from=builder /app/build/wasmd /usr/bin/wasmd
 
 # Copy config files if needed
-COPY config/ /root/.wasmd/config/
+COPY deployments/devnet/config/ /root/.wasmd/config/
 
-# Set default command
-ENTRYPOINT ["wasmd"]
-CMD ["start"]
+# --- Custom: Build and add Go REST API binary ---
+# Copy Go REST API source code and build it in a new builder stage
+FROM golang:1.21 AS go_builder
+WORKDIR /goapp/chain
+COPY chain ./
+RUN go mod tidy
+RUN go build -o /goapp/nodeinfo-rest main.go
+
+# Back to runtime image
+FROM debian:bookworm-slim as final
+
+# Install necessary runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    bash \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy wasmvm library from builder
+COPY --from=builder /usr/lib/libwasmvm.so /usr/lib/
+COPY --from=builder /usr/bin/wasmd /usr/bin/wasmd
+COPY --from=go_builder /goapp/nodeinfo-rest /usr/bin/nodeinfo-rest
+COPY deployments/devnet/config/ /root/.wasmd/config/
+
+# Entrypoint script to run both wasmd and REST API
+COPY entrypoint_multi.sh /entrypoint_multi.sh
+RUN chmod +x /entrypoint_multi.sh
+ENTRYPOINT ["/entrypoint_multi.sh"]

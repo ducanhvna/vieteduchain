@@ -3,7 +3,8 @@
 # Script for building CosmWasm smart contracts for EduChain
 # This script builds each contract using the rust-optimizer docker image
 
-CONTRACTS_DIR="/Users/dungbui299/Documents/github/cosmos-permissioned-network/be/educhain/smart-contracts"
+# Use relative path for CONTRACTS_DIR
+CONTRACTS_DIR="$(dirname "$0")/../../smart-contracts"
 OPTIMIZER_VERSION="0.12.13"  # Latest compatible with CosmWasm 0.16
 
 echo "====================================================="
@@ -14,6 +15,14 @@ echo "====================================================="
 build_contract() {
   local contract_name=$1
   local contract_dir="${CONTRACTS_DIR}/${contract_name}"
+  local wasm_file="${contract_dir}/artifacts/${contract_name}.wasm"
+
+  # If a valid .wasm file already exists, skip building
+  if [ -f "$wasm_file" ] && [ -s "$wasm_file" ]; then
+    echo "Found existing valid wasm for ${contract_name}, skipping build."
+    echo "Wasm file size: $(stat -f%z "$wasm_file") bytes"
+    return 0
+  fi
   
   echo "====================================================="
   echo "Building contract: ${contract_name}"
@@ -103,20 +112,28 @@ fi
 
 # Build each contract
 for contract in eduid educert edupay researchledger eduadmission; do
+  contract_wasm="${CONTRACTS_DIR}/${contract}/artifacts/${contract}.wasm"
+  # If a valid .wasm file already exists, skip building
+  if [ -f "$contract_wasm" ] && [ -s "$contract_wasm" ]; then
+    echo "Contract ${contract} already built and valid. Skipping build."
+    continue
+  fi
+  # Ensure cache volume exists for each contract
   if ! docker volume ls | grep -q "${contract}_cache"; then
     echo "Creating cache volume for ${contract}..."
     docker volume create "${contract}_cache"
   fi
-  
   build_contract "${contract}"
-  
-  # Check result
-  if [ $? -ne 0 ]; then
+  build_result=$?
+  if [ $build_result -ne 0 ]; then
     echo "Warning: Failed to build ${contract}"
-    
     # Fall back to manual placeholder if build fails
     echo "Creating placeholder wasm file for ${contract}..."
     "${CONTRACTS_DIR}/../deployments/scripts/manual_build_contracts.sh" "${contract}"
+  fi
+  # After manual build, check if wasm exists and is valid
+  if [ ! -f "$contract_wasm" ] || [ ! -s "$contract_wasm" ]; then
+    echo "Error: No valid wasm file for ${contract} after all build attempts."
   fi
 done
 
