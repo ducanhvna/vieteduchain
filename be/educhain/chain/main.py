@@ -4,32 +4,68 @@ FastAPI implementation of the Custom REST API for Cosmos Permissioned Network
 This replaces the Go implementation with a Python-based FastAPI version
 """
 
-from fastapi import FastAPI, HTTPException, Request, Path, Query
+from fastapi import FastAPI, HTTPException, Request, Path, Query, Body, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 import httpx
 import uvicorn
 import os
-from datetime import datetime
+import sys
+import subprocess
+import json
+from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 import logging
+from logging.handlers import RotatingFileHandler
+import asyncio
+import time
+import psutil
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
+
+# Configure advanced logging
+LOG_FILE = os.getenv("LOG_FILE", "/var/log/fastapi_detailed.log")
+MAX_LOG_SIZE = 10 * 1024 * 1024  # 10 MB
+BACKUP_COUNT = 5
+
+# Set up rotating file handler
+file_handler = RotatingFileHandler(
+    LOG_FILE,
+    maxBytes=MAX_LOG_SIZE,
+    backupCount=BACKUP_COUNT
+)
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
     handlers=[
-        logging.StreamHandler()
+        logging.StreamHandler(),
+        file_handler
     ]
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("educhain-api")
+
+# Create Prometheus metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP Requests', ['method', 'endpoint', 'status'])
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP Request Latency', ['method', 'endpoint'])
+NODE_HEIGHT = Gauge('node_latest_block_height', 'Latest Block Height')
+NODE_PEERS = Gauge('node_connected_peers', 'Number of Connected Peers')
+API_UP = Gauge('api_up', 'API is up and running')
+SYSTEM_MEMORY = Gauge('system_memory_usage_bytes', 'System Memory Usage in Bytes')
+SYSTEM_CPU = Gauge('system_cpu_usage_percent', 'System CPU Usage Percentage')
+TENDERMINT_UP = Gauge('tendermint_up', 'Tendermint is up and running')
+COSMOS_REST_UP = Gauge('cosmos_rest_up', 'Cosmos REST API is up and running')
+WASMD_UP = Gauge('wasmd_up', 'wasmd is up and running')
 
 # Create FastAPI app
 app = FastAPI(
     title="EduChain Custom API",
     description="Custom REST API for Cosmos Permissioned Network",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/api/v1/docs",
+    redoc_url="/api/v1/redoc",
+    openapi_url="/api/v1/openapi.json"
 )
 
 # Add CORS middleware
@@ -44,623 +80,414 @@ app.add_middleware(
 # Configuration
 TENDERMINT_RPC_URL = os.getenv("TENDERMINT_RPC_URL", "http://localhost:26657")
 COSMOS_REST_URL = os.getenv("COSMOS_REST_URL", "http://localhost:1317")
+WASMD_HOME = os.getenv("DAEMON_HOME", "/root/.wasmd")
 
-# Mocks (for demo purposes when actual data is not available)
-MOCK_DATA = {
-    "nodeinfo": {
-        "node_id": "b267cdc169df88998f1407487315864bad554840",
-        "network": "educhain",
-        "version": "0.40.2",
-        "channels": "40202120212223303800",
-        "moniker": "EduChain Validator Node",
-        "other": {
-            "tx_index": "on",
-            "rpc_address": "tcp://0.0.0.0:26657"
+# Last successful health check timestamp
+last_successful_health_check = None
+
+# Background task to update metrics
+async def update_metrics():
+    """Update Prometheus metrics"""
+    try:
+        # Update system metrics
+        SYSTEM_MEMORY.set(psutil.virtual_memory().used)
+        SYSTEM_CPU.set(psutil.cpu_percent())
+        
+        # Update node metrics
+        try:
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                # Check Tendermint RPC
+                response = await client.get(f"{TENDERMINT_RPC_URL}/status")
+                if response.status_code == 200:
+                    data = response.json()
+                    NODE_HEIGHT.set(int(data["result"]["sync_info"]["latest_block_height"]))
+                    TENDERMINT_UP.set(1)
+                else:
+                    TENDERMINT_UP.set(0)
+                
+                # Check Cosmos REST API
+                response = await client.get(f"{COSMOS_REST_URL}/node_info")
+                if response.status_code == 200:
+                    COSMOS_REST_UP.set(1)
+                else:
+                    COSMOS_REST_UP.set(0)
+                
+                # Check net info for peers
+                response = await client.get(f"{TENDERMINT_RPC_URL}/net_info")
+                if response.status_code == 200:
+                    data = response.json()
+                    NODE_PEERS.set(int(data["result"]["n_peers"]))
+        except Exception as e:
+            logger.error(f"Error updating node metrics: {str(e)}")
+            TENDERMINT_UP.set(0)
+            COSMOS_REST_UP.set(0)
+        
+        # Check if wasmd is running
+        try:
+            result = subprocess.run(["pgrep", "-f", "wasmd start"], capture_output=True, text=True)
+            WASMD_UP.set(1 if result.returncode == 0 else 0)
+        except Exception as e:
+            logger.error(f"Error checking wasmd process: {str(e)}")
+            WASMD_UP.set(0)
+        
+        # API is up
+        API_UP.set(1)
+    except Exception as e:
+        logger.error(f"Error in update_metrics: {str(e)}")
+        API_UP.set(0)
+
+# Middleware to track request metrics
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    start_time = time.time()
+    
+    # Default to 500 in case of unhandled errors
+    status_code = 500
+    
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    except Exception as e:
+        logger.error(f"Unhandled exception: {str(e)}")
+        raise
+    finally:
+        # Record request latency
+        latency = time.time() - start_time
+        endpoint = request.url.path
+        REQUEST_LATENCY.labels(request.method, endpoint).observe(latency)
+        REQUEST_COUNT.labels(request.method, endpoint, status_code).inc()
+
+# Create a global httpx client for reuse
+@app.on_event("startup")
+async def startup_event():
+    app.state.http_client = httpx.AsyncClient(timeout=10.0)
+    # Record startup time
+    app.state.startup_time = datetime.now()
+    # Initial health check of dependent services
+    await check_dependent_services()
+    # Update metrics
+    await update_metrics()
+    
+    # Log startup information
+    logger.info(f"EduChain API started successfully")
+    logger.info(f"Tendermint RPC URL: {TENDERMINT_RPC_URL}")
+    logger.info(f"Cosmos REST URL: {COSMOS_REST_URL}")
+    logger.info(f"WASMD_HOME: {WASMD_HOME}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await app.state.http_client.aclose()
+    logger.info("EduChain API shutting down")
+
+async def check_dependent_services():
+    """Check if dependent services are available"""
+    global last_successful_health_check
+    
+    services_status = {"tendermint_rpc": False, "cosmos_rest": False}
+    
+    # Check Tendermint RPC
+    try:
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/health")
+        if response.status_code == 200:
+            logger.info(f"Tendermint RPC service is available at {TENDERMINT_RPC_URL}")
+            services_status["tendermint_rpc"] = True
+        else:
+            logger.warning(f"Tendermint RPC service returned status {response.status_code}")
+    except Exception as e:
+        logger.warning(f"Tendermint RPC service check failed: {str(e)}")
+    
+    # Check Cosmos REST API
+    try:
+        response = await app.state.http_client.get(f"{COSMOS_REST_URL}/node_info")
+        if response.status_code == 200:
+            logger.info(f"Cosmos REST API is available at {COSMOS_REST_URL}")
+            services_status["cosmos_rest"] = True
+        else:
+            logger.warning(f"Cosmos REST API returned status {response.status_code}")
+    except Exception as e:
+        logger.warning(f"Cosmos REST API check failed: {str(e)}")
+    
+    # Update last successful health check if all services are available
+    if all(services_status.values()):
+        last_successful_health_check = datetime.now()
+    
+    return services_status
+
+# Basic routes
+@app.get("/api/v1/nodeinfo")
+async def get_node_info():
+    """Get node information including version, network, and validator details"""
+    try:
+        # Call Tendermint RPC
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/status")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to get node status")
+        
+        data = response.json()
+        
+        # Extract relevant info
+        node_info = {
+            "node_id": data["result"]["node_info"]["id"],
+            "network": data["result"]["node_info"]["network"],
+            "version": data["result"]["node_info"]["version"],
+            "channels": data["result"]["node_info"]["channels"],
+            "moniker": data["result"]["node_info"]["moniker"],
+            "other": data["result"]["node_info"]["other"],
+            "application_version": {
+                "name": "wasmd",
+                "server_name": "wasmd",
+                "version": data["result"]["node_info"]["version"],
+                "git_commit": "",
+                "build_tags": "netgo",
+                "go_version": "go version go1.19.13 linux/amd64"
+            },
+            "latest_block_height": data["result"]["sync_info"]["latest_block_height"],
+            "catching_up": data["result"]["sync_info"]["catching_up"]
+        }
+        
+        return node_info
+    except Exception as e:
+        logger.error(f"Error getting node info: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/v1/health")
+async def health_check(background_tasks: BackgroundTasks):
+    """Health check endpoint with detailed service status"""
+    global last_successful_health_check
+    
+    # Get uptime
+    uptime = datetime.now() - app.state.startup_time
+    
+    # Update metrics in the background
+    background_tasks.add_task(update_metrics)
+    
+    # Check if wasmd is running
+    wasmd_running = False
+    try:
+        result = subprocess.run(["pgrep", "-f", "wasmd start"], capture_output=True, text=True)
+        wasmd_running = result.returncode == 0
+    except Exception as e:
+        logger.error(f"Error checking wasmd process: {str(e)}")
+    
+    # Check dependent services
+    services_status = await check_dependent_services()
+    
+    # Get system resource usage
+    try:
+        memory = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        disk = psutil.disk_usage('/')
+    except Exception as e:
+        logger.error(f"Error getting system resources: {str(e)}")
+        memory = None
+        cpu_percent = None
+        disk = None
+    
+    # Determine overall health status
+    all_critical_services_up = wasmd_running and services_status["tendermint_rpc"] 
+    status = "ok" if all_critical_services_up else "degraded"
+    
+    # If it's been more than 5 minutes since last successful health check and we're not healthy now
+    if (last_successful_health_check is None or 
+        (datetime.now() - last_successful_health_check > timedelta(minutes=5)) and 
+        not all_critical_services_up):
+        status = "critical"
+    
+    # If all is well, update the last successful health check
+    if all_critical_services_up:
+        last_successful_health_check = datetime.now()
+    
+    health_data = {
+        "status": status,
+        "timestamp": datetime.now().isoformat(),
+        "uptime_seconds": int(uptime.total_seconds()),
+        "services": {
+            "wasmd": "running" if wasmd_running else "not_detected",
+            "tendermint_rpc": "healthy" if services_status["tendermint_rpc"] else "unhealthy",
+            "cosmos_rest": "healthy" if services_status["cosmos_rest"] else "unhealthy"
         },
-        "application_version": {
-            "name": "wasmd",
-            "server_name": "wasmd",
-            "version": "0.40.2",
-            "git_commit": "8131b3b119f6fe3e3c98c5aa8b70cd78d9d0d8b7",
-            "build_tags": "netgo",
-            "go_version": "go version go1.19.13 linux/amd64"
-        },
-        "contracts": [
-            {"name": "EduID", "address": "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr"},
-            {"name": "EduCert", "address": "cosmos1ees2tqj6hh5kz3vu2XXXz8sSmt2aaagt9qzya66nu4t9qfgxynaqg6mvx8"},
-            {"name": "EduPay", "address": "cosmos1nlmvj0xvmkvggt7tjxyv86jkqdrsfh79zs33v9wy9pkv5vmr6fnsdv67px"}
-        ],
-        "permissioned_nodes": [
-            {"node_id": "b267cdc169df88998f1407487315864bad554840", "name": "validator-1", "role": "validator"},
-            {"node_id": "d7a573d45823bd80c9a0586d64788c44e2d0addb", "name": "authority-1", "role": "authority"}
-        ],
-        "student_dids": 24,
-        "issued_credentials": 132,
-        "last_processed_block": 5721
-    },
-    "params": {
-        "chain_id": "educhain",
-        "blocks_per_year": 6311520,
-        "inflation_rate": "0.130000000000000000",
-        "inflation_max": "0.200000000000000000",
-        "inflation_min": "0.070000000000000000",
-        "goal_bonded": "0.670000000000000000",
-        "unbonding_time": "1814400000000000",
-        "max_validators": 100,
-        "max_entries": 7,
-        "historical_entries": 10000,
-        "bond_denom": "stake",
-        "base_proposer_reward": "0.010000000000000000",
-        "bonus_proposer_reward": "0.040000000000000000",
-        "community_tax": "0.020000000000000000"
-    },
-    "contracts": [
-        {
-            "name": "EduID",
-            "address": "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr",
-            "creator": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "code_id": 1,
-            "type": "identity",
-            "created_at": "2025-06-01T10:15:30Z",
-            "last_updated": "2025-06-20T14:22:10Z",
-            "version": "1.0.0",
-            "features": ["did_resolution", "credential_issuance", "verification"],
-            "admin": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "metadata": {
-                "description": "Digital Identity Management for Educational Institutions",
-                "website": "https://eduid.example.com",
-                "repository": "https://github.com/example/eduid"
-            }
-        },
-        {
-            "name": "EduCert",
-            "address": "cosmos1ees2tqj6hh5kz3vu2XXXz8sSmt2aaagt9qzya66nu4t9qfgxynaqg6mvx8",
-            "creator": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "code_id": 2,
-            "type": "certification",
-            "created_at": "2025-06-02T11:20:45Z",
-            "last_updated": "2025-06-19T16:30:22Z",
-            "version": "1.1.0",
-            "features": ["certificate_issuance", "verification", "revocation"],
-            "admin": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "metadata": {
-                "description": "Academic Certificate Management System",
-                "website": "https://educert.example.com",
-                "repository": "https://github.com/example/educert"
-            }
-        },
-        {
-            "name": "EduPay",
-            "address": "cosmos1nlmvj0xvmkvggt7tjxyv86jkqdrsfh79zs33v9wy9pkv5vmr6fnsdv67px",
-            "creator": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "code_id": 3,
-            "type": "payment",
-            "created_at": "2025-06-03T09:45:15Z",
-            "last_updated": "2025-06-18T12:10:05Z",
-            "version": "0.9.5",
-            "features": ["fee_payment", "scholarships", "refunds"],
-            "admin": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "metadata": {
-                "description": "Educational Payment Processing System",
-                "website": "https://edupay.example.com",
-                "repository": "https://github.com/example/edupay"
+        "last_successful_health_check": last_successful_health_check.isoformat() if last_successful_health_check else None
+    }
+    
+    # Include system resources if available
+    if memory and cpu_percent and disk:
+        health_data["system"] = {
+            "memory": {
+                "total": memory.total,
+                "available": memory.available,
+                "percent": memory.percent
+            },
+            "cpu_percent": cpu_percent,
+            "disk": {
+                "total": disk.total,
+                "used": disk.used,
+                "free": disk.free,
+                "percent": disk.percent
             }
         }
-    ]
-}
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
-
-@app.get("/api/v1/nodeinfo")
-async def node_info():
-    """Get node information including custom EduChain data"""
-    logger.info("Request to /api/v1/nodeinfo")
     
+    # Return appropriate status code based on health
+    status_code = 200 if status == "ok" else 503
+    return JSONResponse(content=health_data, status_code=status_code)
+
+@app.get("/api/v1/blocks/latest")
+async def get_latest_block():
+    """Get information about the latest block"""
     try:
-        # Try to get real data from Tendermint RPC
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{TENDERMINT_RPC_URL}/status")
-            
-            if response.status_code == 200:
-                tm_data = response.json()
-                
-                # Extract relevant data
-                node_info = tm_data.get("result", {}).get("node_info", {})
-                
-                # Combine with our custom data
-                result = {
-                    "node_id": node_info.get("id", MOCK_DATA["nodeinfo"]["node_id"]),
-                    "network": node_info.get("network", MOCK_DATA["nodeinfo"]["network"]),
-                    "version": node_info.get("version", MOCK_DATA["nodeinfo"]["version"]),
-                    "channels": node_info.get("channels", MOCK_DATA["nodeinfo"]["channels"]),
-                    "moniker": node_info.get("moniker", MOCK_DATA["nodeinfo"]["moniker"]),
-                    "other": node_info.get("other", MOCK_DATA["nodeinfo"]["other"]),
-                    # Add custom EduChain data
-                    "contracts": MOCK_DATA["nodeinfo"]["contracts"],
-                    "permissioned_nodes": MOCK_DATA["nodeinfo"]["permissioned_nodes"],
-                    "student_dids": MOCK_DATA["nodeinfo"]["student_dids"],
-                    "issued_credentials": MOCK_DATA["nodeinfo"]["issued_credentials"],
-                    "last_processed_block": MOCK_DATA["nodeinfo"]["last_processed_block"]
-                }
-                
-                # Add application version if available
-                app_version = tm_data.get("result", {}).get("application_version")
-                if app_version:
-                    result["application_version"] = app_version
-                else:
-                    result["application_version"] = MOCK_DATA["nodeinfo"]["application_version"]
-                    
-                return result
-    except Exception as e:
-        logger.warning(f"Error fetching node info from Tendermint RPC: {str(e)}")
-        logger.info("Returning mock data")
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/block")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to get latest block")
         
-    # Return mock data if we couldn't get real data
-    return MOCK_DATA["nodeinfo"]
-
-@app.get("/api/v1/params")
-async def chain_params():
-    """Get chain parameters"""
-    logger.info("Request to /api/v1/params")
-    
-    try:
-        # Try to get real data from Cosmos REST API
-        # This is a simplified example, in practice you would need to query multiple endpoints
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{COSMOS_REST_URL}/cosmos/staking/v1beta1/params")
-            
-            if response.status_code == 200:
-                # Process and return real data
-                # This is simplified, in reality you'd need to aggregate params from multiple modules
-                return response.json().get("params", MOCK_DATA["params"])
+        data = response.json()
+        return data["result"]
     except Exception as e:
-        logger.warning(f"Error fetching chain params from Cosmos REST API: {str(e)}")
-        logger.info("Returning mock data")
+        logger.error(f"Error getting latest block: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/v1/blocks/{height}")
+async def get_block_by_height(height: int = Path(..., description="Block height")):
+    """Get information about a specific block by height"""
+    try:
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/block?height={height}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Failed to get block at height {height}")
+        
+        data = response.json()
+        return data["result"]
+    except Exception as e:
+        logger.error(f"Error getting block at height {height}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/v1/metrics")
+async def get_node_metrics():
+    """Get node metrics including validator status, connected peers, etc."""
+    try:
+        # Get status
+        status_response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/status")
+        status_data = status_response.json()
+        
+        # Get net info
+        net_info_response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/net_info")
+        net_info_data = net_info_response.json()
+        
+        # Get validator info
+        validators_response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/validators")
+        validators_data = validators_response.json()
+        
+        # Compile metrics
+        metrics = {
+            "chain_id": status_data["result"]["node_info"]["network"],
+            "latest_block_height": status_data["result"]["sync_info"]["latest_block_height"],
+            "latest_block_time": status_data["result"]["sync_info"]["latest_block_time"],
+            "catching_up": status_data["result"]["sync_info"]["catching_up"],
+            "voting_power": status_data["result"]["validator_info"]["voting_power"],
+            "peers": {
+                "n_peers": net_info_data["result"]["n_peers"],
+                "connected_peers": [
+                    {
+                        "node_id": peer["node_info"]["id"],
+                        "moniker": peer["node_info"]["moniker"],
+                        "remote_ip": peer["remote_ip"]
+                    }
+                    for peer in net_info_data["result"]["peers"]
+                ]
+            },
+            "validators": {
+                "count": validators_data["result"]["total"],
+                "total_voting_power": sum(int(v["voting_power"]) for v in validators_data["result"]["validators"])
+            }
+        }
+        
+        return metrics
+    except Exception as e:
+        logger.error(f"Error getting node metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/v1/transactions/{hash}")
+async def get_transaction(hash: str = Path(..., description="Transaction hash")):
+    """Get transaction details by hash"""
+    try:
+        # Convert hash to uppercase if needed
+        hash = hash.upper()
+        
+        # Query transaction
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/tx?hash=0x{hash}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Failed to get transaction with hash {hash}")
+        
+        data = response.json()
+        if "error" in data:
+            raise HTTPException(status_code=404, detail=f"Transaction not found: {hash}")
+        
+        return data["result"]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting transaction {hash}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/api/v1/prometheus", response_class=Response)
+async def prometheus_metrics():
+    """Expose Prometheus metrics"""
+    # Update metrics before serving
+    await update_metrics()
     
-    # Return mock data if we couldn't get real data
-    return MOCK_DATA["params"]
+    # Generate and serve metrics in Prometheus format
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 @app.get("/api/v1/validators")
-async def validators():
-    """Get list of validators"""
-    logger.info("Request to /api/v1/validators")
-    
+async def get_validators():
+    """Get information about current validators"""
     try:
-        # Try to get real data from Cosmos REST API
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{COSMOS_REST_URL}/cosmos/staking/v1beta1/validators")
-            
-            if response.status_code == 200:
-                # Process and return validators
-                return response.json()
-    except Exception as e:
-        logger.warning(f"Error fetching validators from Cosmos REST API: {str(e)}")
+        response = await app.state.http_client.get(f"{TENDERMINT_RPC_URL}/validators")
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Failed to get validators")
         
-    # Return simplified mock data if we couldn't get real data
-    return {
-        "validators": [
-            {
-                "operator_address": "wasmvaloper1ktvz9rmd87cc5u80fxjenrptjqp25zlh3whest",
-                "consensus_pubkey": {
-                    "@type": "/cosmos.crypto.ed25519.PubKey",
-                    "key": "UA/hBuDHBAgnTJN0P5brUfsYrRyiIeBe5hM1+pX6fiA="
-                },
-                "jailed": False,
-                "status": "BOND_STATUS_BONDED",
-                "tokens": "300000000000",
-                "delegator_shares": "300000000000.000000000000000000",
-                "description": {
-                    "moniker": "my-wasmd-node",
-                    "identity": "",
-                    "website": "",
-                    "security_contact": "",
-                    "details": ""
-                },
-                "unbonding_height": "0",
-                "unbonding_time": "1970-01-01T00:00:00Z",
-                "commission": {
-                    "commission_rates": {
-                        "rate": "0.100000000000000000",
-                        "max_rate": "0.200000000000000000",
-                        "max_change_rate": "0.010000000000000000"
-                    },
-                    "update_time": "2025-06-01T00:00:00Z"
-                },
-                "min_self_delegation": "1"
-            }
-        ],
-        "pagination": {
-            "next_key": None,
-            "total": "1"
-        }
-    }
-
-@app.get("/api/v1/tx/{hash}")
-async def get_tx(hash: str = Path(..., description="Transaction hash")):
-    """Get transaction by hash"""
-    logger.info(f"Request to /api/v1/tx/{hash}")
-    
-    try:
-        # Try to get real data from Cosmos REST API
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{COSMOS_REST_URL}/cosmos/tx/v1beta1/txs/{hash}")
-            
-            if response.status_code == 200:
-                tx_data = response.json()
-                
-                # Process and return formatted transaction data
-                # This is simplified, in reality you'd format the response more extensively
-                return {
-                    "tx_hash": hash,
-                    "height": int(tx_data.get("tx_response", {}).get("height", "0")),
-                    "timestamp": tx_data.get("tx_response", {}).get("timestamp", ""),
-                    "status": "success" if tx_data.get("tx_response", {}).get("code", 1) == 0 else "failed",
-                    "gas_used": int(tx_data.get("tx_response", {}).get("gas_used", "0")),
-                    "gas_wanted": int(tx_data.get("tx_response", {}).get("gas_wanted", "0")),
-                    "raw_log": tx_data.get("tx_response", {}).get("raw_log", ""),
-                    # Add more fields as needed
-                }
+        data = response.json()
+        return data["result"]
     except Exception as e:
-        logger.warning(f"Error fetching tx {hash} from Cosmos REST API: {str(e)}")
-    
-    # Return mock data if we couldn't get real data
-    return {
-        "tx_hash": hash,
-        "height": 5721,
-        "timestamp": "2025-06-20T15:30:45Z",
-        "status": "success",
-        "gas_used": 65423,
-        "gas_wanted": 80000,
-        "events": [
-            {
-                "type": "transfer",
-                "attributes": {
-                    "recipient": "cosmos1recipient",
-                    "sender": "cosmos1sender",
-                    "amount": "100token"
-                }
-            }
-        ],
-        "messages": [
-            {
-                "type": "cosmos-sdk/MsgSend",
-                "data": {
-                    "from_address": "cosmos1sender",
-                    "to_address": "cosmos1recipient",
-                    "amount": [{"denom": "token", "amount": "100"}]
-                }
-            }
-        ]
-    }
+        logger.error(f"Error getting validators: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@app.get("/api/v1/transactions")
-async def get_txs(
-    page: int = Query(1, description="Page number"),
-    limit: int = Query(10, description="Items per page")
-):
-    """Get list of transactions"""
-    logger.info(f"Request to /api/v1/transactions?page={page}&limit={limit}")
-    
+@app.get("/api/v1/genesis")
+async def get_genesis():
+    """Get genesis file information"""
     try:
-        # Try to get real data from Cosmos REST API
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(
-                f"{COSMOS_REST_URL}/cosmos/tx/v1beta1/txs",
-                params={"pagination.limit": str(limit), "pagination.offset": str((page-1)*limit), "order_by": "ORDER_BY_DESC"}
-            )
-            
-            if response.status_code == 200:
-                # Process and return formatted transactions data
-                # This is simplified, in reality you'd format the response more extensively
-                return response.json()
-    except Exception as e:
-        logger.warning(f"Error fetching transactions from Cosmos REST API: {str(e)}")
-    
-    # Return mock data if we couldn't get real data
-    return {
-        "txs": [
-            {
-                "tx_hash": "ABCDEF1234567890ABCDEF1234567890ABCDEF12",
-                "height": 5721,
-                "timestamp": "2025-06-20T15:30:45Z",
-                "status": "success",
-                "gas_used": 65423,
-                "gas_wanted": 80000,
-                "events": [
-                    {
-                        "type": "transfer",
-                        "attributes": {
-                            "recipient": "cosmos1recipient",
-                            "sender": "cosmos1sender",
-                            "amount": "100token"
-                        }
-                    }
-                ],
-                "messages": [
-                    {
-                        "type": "cosmos-sdk/MsgSend",
-                        "data": {
-                            "from_address": "cosmos1sender",
-                            "to_address": "cosmos1recipient",
-                            "amount": [{"denom": "token", "amount": "100"}]
-                        }
-                    }
-                ]
-            }
-        ],
-        "total": 42,
-        "page": page,
-        "limit": limit
-    }
-
-@app.get("/api/v1/dids")
-async def get_dids(
-    page: int = Query(1, description="Page number"),
-    limit: int = Query(10, description="Items per page")
-):
-    """Get list of DIDs"""
-    logger.info(f"Request to /api/v1/dids?page={page}&limit={limit}")
-    
-    # For DIDs, we're using mock data as there's no direct equivalent in Cosmos SDK
-    offset = (page - 1) * limit
-    
-    # Generate some sample DIDs
-    total_dids = 24
-    dids = []
-    
-    for i in range(offset, min(offset + limit, total_dids)):
-        did_id = f"did:edu:123456{i:02d}"
-        dids.append({
-            "id": did_id,
-            "controller": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-            "verificationMethod": [
-                {
-                    "id": f"{did_id}#keys-1",
-                    "type": "Ed25519VerificationKey2020",
-                    "controller": did_id,
-                    "publicKeyMultibase": f"z6Mk{i}rqhMkmjbzowQFgzs"
-                }
-            ],
-            "authentication": [f"{did_id}#keys-1"],
-            "created": "2025-06-01T10:15:30Z",
-            "updated": "2025-06-20T14:22:10Z"
-        })
-    
-    return {
-        "dids": dids,
-        "total": total_dids,
-        "page": page,
-        "limit": limit
-    }
-
-@app.get("/api/v1/dids/{id}")
-async def get_did_by_id(id: str = Path(..., description="DID identifier")):
-    """Get DID by ID"""
-    logger.info(f"Request to /api/v1/dids/{id}")
-    
-    # For DIDs, we're using mock data as there's no direct equivalent in Cosmos SDK
-    # In a real implementation, you would query the smart contract
-    
-    if not id.startswith("did:edu:"):
-        raise HTTPException(status_code=404, detail="DID not found")
-    
-    # Generate a sample DID document
-    return {
-        "id": id,
-        "controller": "cosmos1ktvz9rmd87cc5u80fxjenrptjqp25zlhyjz973",
-        "verificationMethod": [
-            {
-                "id": f"{id}#keys-1",
-                "type": "Ed25519VerificationKey2020",
-                "controller": id,
-                "publicKeyMultibase": "z6MkrqhMkmjbzowQFgzsLoozdALc7ZH1qWth5RZgTqscvzRV"
-            }
-        ],
-        "authentication": [f"{id}#keys-1"],
-        "service": [
-            {
-                "id": f"{id}#edu-service",
-                "type": "EducationalService",
-                "serviceEndpoint": "https://university.example/api/v1"
-            }
-        ],
-        "created": "2025-06-01T10:15:30Z",
-        "updated": "2025-06-20T14:22:10Z"
-    }
-
-@app.get("/api/v1/credentials")
-async def get_credentials(
-    page: int = Query(1, description="Page number"),
-    limit: int = Query(10, description="Items per page")
-):
-    """Get list of verifiable credentials"""
-    logger.info(f"Request to /api/v1/credentials?page={page}&limit={limit}")
-    
-    # For credentials, we're using mock data
-    offset = (page - 1) * limit
-    
-    # Generate some sample credentials
-    total_credentials = 132
-    credentials = []
-    
-    for i in range(offset, min(offset + limit, total_credentials)):
-        cred_id = f"http://educhain.example/credentials/{i:04d}"
-        credentials.append({
-            "id": cred_id,
-            "type": ["VerifiableCredential", "DegreeCredential"],
-            "issuer": "did:edu:issuer",
-            "issuanceDate": "2025-06-10T12:00:00Z",
-            "credentialSubject": {
-                "id": f"did:edu:123456{i % 24:02d}",
-                "degree": {
-                    "type": "BachelorDegree",
-                    "name": "Bachelor of Science in Computer Science"
-                }
-            },
-            "status": "active"
-        })
-    
-    return {
-        "credentials": credentials,
-        "total": total_credentials,
-        "page": page,
-        "limit": limit
-    }
-
-@app.post("/api/v1/credentials/verify")
-async def verify_credential(request: Request):
-    """Verify a credential"""
-    logger.info("Request to /api/v1/credentials/verify")
-    
-    try:
-        body = await request.json()
-        credential_id = body.get("credential_id")
+        # This is a large file, so we'll just read it directly from disk
+        genesis_path = os.path.join(WASMD_HOME, "config", "genesis.json")
         
-        if not credential_id:
-            raise HTTPException(status_code=400, detail="credential_id is required")
-        
-        # In a real implementation, you would verify the credential
-        # For this mock, we'll return a success response
-        return {
-            "verified": True,
-            "credential_id": credential_id,
-            "timestamp": datetime.now().isoformat(),
-            "status": "valid"
-        }
-    except Exception as e:
-        logger.error(f"Error verifying credential: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/api/v1/credentials/revoke")
-async def revoke_credential(request: Request):
-    """Revoke a credential"""
-    logger.info("Request to /api/v1/credentials/revoke")
-    
-    try:
-        body = await request.json()
-        credential_id = body.get("credential_id")
-        reason = body.get("reason", "No reason provided")
-        
-        if not credential_id:
-            raise HTTPException(status_code=400, detail="credential_id is required")
-        
-        # In a real implementation, you would revoke the credential
-        # For this mock, we'll return a success response
-        return {
-            "revoked": True,
-            "credential_id": credential_id,
-            "timestamp": datetime.now().isoformat(),
-            "reason": reason
-        }
-    except Exception as e:
-        logger.error(f"Error revoking credential: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-# New endpoint for listing all CosmWasm contracts
-@app.get("/api/v1/contracts")
-async def get_contracts():
-    """Get list of all CosmWasm contracts deployed on the chain"""
-    logger.info("Request to /api/v1/contracts")
-    
-    try:
-        # Try to get real data from Cosmos REST API
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(f"{COSMOS_REST_URL}/cosmwasm/wasm/v1/contract")
+        if not os.path.exists(genesis_path):
+            raise HTTPException(status_code=404, detail=f"Genesis file not found at {genesis_path}")
             
-            if response.status_code == 200:
-                contracts_data = response.json()
-                
-                # Format the response
-                contracts = []
-                for contract in contracts_data.get("contracts", []):
-                    contracts.append({
-                        "address": contract.get("address"),
-                        "code_id": contract.get("code_id"),
-                        "creator": contract.get("creator"),
-                        "admin": contract.get("admin", ""),
-                        "label": contract.get("label", ""),
-                        # You would need to determine the contract type/name based on your application logic
-                        "name": "Unknown",
-                        "type": "Unknown"
-                    })
-                
-                return {"contracts": contracts}
-    except Exception as e:
-        logger.warning(f"Error fetching contracts from Cosmos REST API: {str(e)}")
-        logger.info("Returning mock data")
-    
-    # Return mock data if we couldn't get real data
-    return {"contracts": MOCK_DATA["contracts"]}
-
-# New endpoint for getting details about a specific contract
-@app.get("/api/v1/contracts/{address}")
-async def get_contract_by_address(address: str = Path(..., description="Contract address")):
-    """Get detailed information about a specific CosmWasm contract"""
-    logger.info(f"Request to /api/v1/contracts/{address}")
-    
-    try:
-        # Try to get real data from Cosmos REST API
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            # Get contract info
-            response = await client.get(f"{COSMOS_REST_URL}/cosmwasm/wasm/v1/contract/{address}")
+        try:
+            with open(genesis_path, 'r') as f:
+                genesis_data = json.load(f)
             
-            if response.status_code == 200:
-                contract_data = response.json().get("contract_info", {})
-                
-                # Get contract history
-                history_response = await client.get(f"{COSMOS_REST_URL}/cosmwasm/wasm/v1/contract/{address}/history")
-                history = history_response.json().get("entries", []) if history_response.status_code == 200 else []
-                
-                # Get contract state
-                state_response = await client.get(f"{COSMOS_REST_URL}/cosmwasm/wasm/v1/contract/{address}/state")
-                state = state_response.json().get("models", []) if state_response.status_code == 200 else []
-                
-                # Format the response
-                result = {
-                    "address": address,
-                    "code_id": contract_data.get("code_id"),
-                    "creator": contract_data.get("creator"),
-                    "admin": contract_data.get("admin", ""),
-                    "label": contract_data.get("label", ""),
-                    "created_at": contract_data.get("created", ""),
-                    "ibc_port_id": contract_data.get("ibc_port_id", ""),
-                    "history": history,
-                    "state_size": len(state)
-                }
-                
-                # You would need to determine the contract type/name based on your application logic
-                # For example, by checking the code_id or patterns in the label/state
-                
-                return result
+            # Return a summary instead of the full file which could be very large
+            return {
+                "app_hash": genesis_data.get("app_hash", ""),
+                "chain_id": genesis_data.get("chain_id", ""),
+                "genesis_time": genesis_data.get("genesis_time", ""),
+                "initial_height": genesis_data.get("initial_height", ""),
+                "consensus_params": genesis_data.get("consensus_params", {}),
+                "validators_count": len(genesis_data.get("validators", [])),
+                "app_state_summary": {key: "..." for key in genesis_data.get("app_state", {}).keys()}
+            }
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Invalid genesis file format")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error reading genesis file: {str(e)}")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.warning(f"Error fetching contract {address} from Cosmos REST API: {str(e)}")
-        logger.info("Returning mock data")
-    
-    # Return mock data if we couldn't get real data
-    # Find the contract in our mock data
-    for contract in MOCK_DATA["contracts"]:
-        if contract["address"] == address:
-            return contract
-    
-    # If contract not found in mock data
-    raise HTTPException(status_code=404, detail=f"Contract {address} not found")
-
-# Add backward compatibility routes
-@app.get("/nodeinfo")
-async def legacy_node_info():
-    """Legacy endpoint for node info"""
-    return await node_info()
+        logger.error(f"Error getting genesis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 if __name__ == "__main__":
-    # Get port from environment variable or use default
-    port = int(os.getenv("PORT", "1318"))
+    port = int(os.getenv("API_PORT", "1318"))
+    host = os.getenv("API_HOST", "0.0.0.0")
+    log_level = os.getenv("LOG_LEVEL", "info")
     
-    # Print startup banner
-    print(f"Starting FastAPI server on http://0.0.0.0:{port}")
-    print(f"API documentation available at http://0.0.0.0:{port}/docs")
-    
-    # Run the server
-    uvicorn.run("main:app", host="0.0.0.0", port=port, log_level="info")
+    print(f"Starting FastAPI server on http://{host}:{port}")
+    uvicorn.run("main:app", host=host, port=port, log_level=log_level, reload=False)
