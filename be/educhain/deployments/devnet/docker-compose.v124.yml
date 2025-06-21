@@ -1,0 +1,26 @@
+services:
+  wasm-node:
+    platform: linux/amd64
+    build:
+      context: ../..  # build context là thư mục be/educhain
+      dockerfile: deployments/devnet/Dockerfile.v124
+    container_name: wasm-node
+    restart: unless-stopped
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+      - "1317:1317"    # Cosmos REST API
+      - "1318:1318"    # FastAPI Custom REST API
+      - "9090:9090"    # gRPC port
+    volumes:
+      - ./data:/root/.wasmd
+      - ./enhanced_start_v124.sh:/root/enhanced_start.sh
+      - ./monitor_services.sh:/root/monitor_services.sh
+      - ../../chain:/root/chain
+    environment:
+      - DAEMON_NAME=wasmd
+      - DAEMON_HOME=/root/.wasmd
+      - CHAIN_ID=educhain
+      - CLEAN_START=true  # Set to true for fresh start, then can set to false after first run
+      - LD_LIBRARY_PATH=/lib:/usr/lib
+    entrypoint: ["/bin/bash", "/root/enhanced_start.sh"]
