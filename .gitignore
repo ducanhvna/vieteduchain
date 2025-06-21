@@ -27,3 +27,4 @@ core/cosmos-core
 be/educhain/smart-contracts/educert/target/
 be/educhain/deployments/devnet/data/data/
 be/educhain/smart-contracts/eduid/target/
+be/educhain/deployments/devnet/old_dockerfiles/

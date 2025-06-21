@@ -132,6 +132,8 @@
                 <li data-endpoint="nodeinfo" class="active">Node Info</li>
                 <li data-endpoint="params">Chain Parameters</li>
                 <li data-endpoint="validators">Validators</li>
+                <li data-endpoint="tx-by-hash">Transaction by Hash</li>
+                <li data-endpoint="transactions">Transaction List</li>
                 <li data-endpoint="dids">List DIDs</li>
                 <li data-endpoint="did-by-id">Get DID by ID</li>
                 <li data-endpoint="credentials">Credentials for DID</li>
@@ -186,6 +188,27 @@
                 method: 'GET',
                 url: `${BASE_URL}/validators`,
                 params: []
+            },
+            'tx-by-hash': {
+                title: 'Transaction by Hash',
+                method: 'GET',
+                url: `${BASE_URL}/tx/`,
+                params: [
+                    { name: 'id', label: 'Transaction Hash', type: 'text', placeholder: 'e.g., ABCDEF1234567890...', required: true }
+                ]
+            },
+            'transactions': {
+                title: 'Transaction List',
+                method: 'GET',
+                url: `${BASE_URL}/transactions`,
+                params: [
+                    { name: 'page', label: 'Page', type: 'number', placeholder: 'e.g., 1' },
+                    { name: 'limit', label: 'Limit', type: 'number', placeholder: 'e.g., 20' },
+                    { name: 'address', label: 'Address', type: 'text', placeholder: 'e.g., cosmos1...' },
+                    { name: 'type', label: 'Transaction Type', type: 'text', placeholder: 'e.g., send, execute' },
+                    { name: 'from_height', label: 'From Height', type: 'number', placeholder: 'e.g., 100000' },
+                    { name: 'to_height', label: 'To Height', type: 'number', placeholder: 'e.g., 200000' }
+                ]
             },
             'dids': {
                 title: 'List DIDs',

@@ -1,0 +1,85 @@
+FROM golang:1.19-bullseye AS builder
+
+# Install necessary build tools and dependencies for CGO
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    curl \
+    make \
+    bash \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build wasmd from source (still needed for Cosmos blockchain functionality)
+WORKDIR /go/src/github.com/CosmWasm/wasmd
+
+# Clone and build in a single layer to reduce image size
+RUN git clone --depth 1 --branch v0.40.2 https://github.com/CosmWasm/wasmd.git . && \
+    # Install dependencies
+    go mod download && \
+    # Clean go cache before build to save space
+    go clean -cache -modcache && \
+    # Set build flags for wasmd - ENABLING CGO for libwasmvm
+    LEDGER_ENABLED=false CGO_ENABLED=1 go build \
+      -mod=readonly \
+      -tags "netgo" \
+      -ldflags '-w -s' \
+      -o /go/bin/wasmd ./cmd/wasmd && \
+    # Find and copy the libwasmvm.*.so library to a known location
+    mkdir -p /usr/lib/ && \
+    find /go -name "libwasmvm.*.so" -exec cp {} /usr/lib/ \; && \
+    # Verify binary was created successfully
+    ls -la /go/bin/wasmd && \
+    ls -la /usr/lib/libwasmvm*
+
+# Final stage - using Debian to ensure glibc compatibility
+FROM debian:bullseye-slim
+
+# Install minimal required packages
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    jq \
+    python3 \
+    python3-pip \
+    procps \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies for FastAPI
+RUN pip3 install --no-cache-dir \
+    fastapi==0.104.1 \
+    uvicorn==0.24.0 \
+    httpx==0.25.1 \
+    pydantic==2.4.2 \
+    python-dotenv==1.0.0
+
+# Copy the wasmd binary from builder stage
+COPY --from=builder /go/bin/wasmd /usr/local/bin/wasmd
+
+# Copy the libwasmvm library from builder stage
+COPY --from=builder /usr/lib/libwasmvm*.so /usr/lib/
+
+# Set up the library path
+ENV LD_LIBRARY_PATH=/usr/lib
+
+# Create directory for wasmd data
+WORKDIR /root
+RUN mkdir -p /root/.wasmd
+
+# Set up the chain directory for FastAPI
+RUN mkdir -p /chain
+
+# Create log directory for API output
+RUN mkdir -p /var/log
+
+# Expose ports
+# 26656: P2P port for Tendermint
+# 26657: RPC port for Tendermint
+# 1317: Cosmos REST API
+# 1318: FastAPI Custom REST API (replacing Go API)
+# 9090: gRPC port
+EXPOSE 26656 26657 1317 1318 9090
+
+# Note: entrypoint will be provided by docker-compose via volume mount
+CMD ["/bin/bash", "-c", "echo 'Container starting...'"]

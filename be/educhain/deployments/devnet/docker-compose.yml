@@ -1,0 +1,22 @@
+services:
+  wasm-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.allinone.fastapi
+    container_name: wasm-node
+    restart: unless-stopped
+    ports:
+      - "26656:26656"  # P2P port
+      - "26657:26657"  # RPC port
+      - "1317:1317"    # Cosmos REST API
+      - "1318:1318"    # FastAPI Custom REST API
+      - "9090:9090"    # gRPC port
+    volumes:
+      - ./data:/root/.wasmd
+      - ./entrypoint_fastapi.sh:/root/entrypoint.sh
+      - ../../chain:/chain
+    environment:
+      - DAEMON_NAME=wasmd
+      - DAEMON_HOME=/root/.wasmd
+      - CHAIN_ID=educhain
+    command: ["/bin/bash", "/root/entrypoint.sh"]
