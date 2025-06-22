@@ -16,6 +16,17 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Export contract addresses from file if available
+if [ -f "$DAEMON_HOME/eduid_address.txt" ]; then
+  export EDUID_CONTRACT_ADDRESS=$(cat "$DAEMON_HOME/eduid_address.txt")
+  echo -e "${YELLOW}Exported EDUID_CONTRACT_ADDRESS=$EDUID_CONTRACT_ADDRESS${NC}"
+fi
+if [ -f "$DAEMON_HOME/educert_address.txt" ]; then
+  export EDUCERT_CONTRACT_ADDRESS=$(cat "$DAEMON_HOME/educert_address.txt")
+  echo -e "${YELLOW}Exported EDUCERT_CONTRACT_ADDRESS=$EDUCERT_CONTRACT_ADDRESS${NC}"
+fi
+# Thêm các contract khác tương tự nếu cần
+
 # Function to check if FastAPI is already running
 check_fastapi_running() {
   # Check if a FastAPI process is already running
@@ -233,6 +244,36 @@ EOF
   fi
 }
 
+# Function to ensure MinIO bucket exists
+ensure_minio_bucket() {
+  # Set these variables as needed or export from environment
+  MINIO_ALIAS="localminio"
+  MINIO_ENDPOINT="${MINIO_ENDPOINT:-http://minio:9000}"
+  MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
+  MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin}"
+  MINIO_BUCKET="${MINIO_BUCKET:-educhain-did}"
+
+  # Check if mc is installed
+  if ! command -v mc &> /dev/null; then
+    echo -e "${YELLOW}MinIO Client (mc) not found, installing...${NC}"
+    curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+    chmod +x /usr/local/bin/mc
+  fi
+
+  # Configure mc alias (idempotent)
+  mc alias set "$MINIO_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" --api S3v4 || true
+
+  # Check if bucket exists
+  if mc ls "$MINIO_ALIAS/$MINIO_BUCKET" > /dev/null 2>&1; then
+    echo -e "${GREEN}MinIO bucket '$MINIO_BUCKET' already exists.${NC}"
+  else
+    echo -e "${YELLOW}MinIO bucket '$MINIO_BUCKET' not found. Creating...${NC}"
+    mc mb "$MINIO_ALIAS/$MINIO_BUCKET"
+    mc policy set public "$MINIO_ALIAS/$MINIO_BUCKET"
+    echo -e "${GREEN}MinIO bucket '$MINIO_BUCKET' created and set to public.${NC}"
+  fi
+}
+
 echo -e "${YELLOW}Enhanced wasmd initialization and startup script for wasmd v0.40.0 with wasmvm v1.2.4${NC}"
 
 # System information
@@ -345,6 +386,9 @@ echo -e "${YELLOW}Validating genesis...${NC}"
 wasmd genesis validate-genesis --home=$DAEMON_HOME || {
   echo -e "${RED}Genesis validation failed, but continuing...${NC}"
 }
+
+# Ensure MinIO bucket exists before starting FastAPI
+ensure_minio_bucket
 
 # Start FastAPI server
 start_fastapi

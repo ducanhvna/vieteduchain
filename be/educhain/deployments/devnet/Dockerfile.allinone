@@ -12,48 +12,50 @@ RUN apt-get update && apt-get install -y \
     libc6-dev \
     pkg-config \
     libssl-dev \
-    file \
     && rm -rf /var/lib/apt/lists/*
 
-# Set versions explicitly to ensure compatibility with wasmd v0.40.0
-ENV WASMD_VERSION=v0.40.0
-ENV WASMVM_VERSION=v1.2.4
-ENV COSMOS_SDK_VERSION=v0.47.3
+# Install Rust and Cargo for building wasmvm
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y && \
+    export PATH="$HOME/.cargo/bin:$PATH" && \
+    ln -s $HOME/.cargo/bin/cargo /usr/local/bin/cargo && \
+    ln -s $HOME/.cargo/bin/rustc /usr/local/bin/rustc && \
+    ln -s $HOME/.cargo/bin/rustup /usr/local/bin/rustup
 
-# Download pre-built libwasmvm.so instead of building from source
-WORKDIR /lib
-RUN if [ "$(uname -m)" = "x86_64" ]; then \
-        echo "Downloading libwasmvm for x86_64..." && \
-        curl -L "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm.x86_64.so" -o /lib/libwasmvm.so; \
-    else \
-        echo "Downloading libwasmvm for aarch64..." && \
-        curl -L "https://github.com/CosmWasm/wasmvm/releases/download/${WASMVM_VERSION}/libwasmvm.aarch64.so" -o /lib/libwasmvm.so; \
-    fi && \
-    chmod +x /lib/libwasmvm.so && \
-    mkdir -p /go/pkg/ && \
-    cp -a /lib/libwasmvm.so /go/pkg/ && \
-    ls -l /lib/libwasmvm.so && \
-    file /lib/libwasmvm.so
+# Set versions explicitly to ensure compatibility
+ENV WASMD_VERSION=v0.54.1
+ENV WASMVM_VERSION=v1.5.0
+ENV COSMOS_SDK_VERSION=v0.50.3
 
-# Build wasmd from source - version v0.40.0 compatible with wasmvm v1.2.4
+# Clone wasmvm and build libwasmvm.so first
+WORKDIR /go/src/github.com/CosmWasm/wasmvm
+RUN git clone --depth 1 --branch ${WASMVM_VERSION} https://github.com/CosmWasm/wasmvm.git . && \
+    cd libwasmvm && \
+    cargo update -p time && \
+    cargo build --release && \
+    mkdir -p /lib && \
+    cp target/release/libwasmvm.so /lib/libwasmvm.so && \
+    ls -l /lib/libwasmvm.so
+
+# Build wasmd from source
 WORKDIR /go/src/github.com/CosmWasm/wasmd
 RUN git clone --depth 1 --branch ${WASMD_VERSION} https://github.com/CosmWasm/wasmd.git . && \
     # Create a branch to avoid detached HEAD warnings
     git checkout -b build-branch && \
-    # Verify wasmvm version in go.mod
-    cat go.mod | grep wasmvm && \
-    # Make sure wasmvm versions match
-    go mod edit -replace github.com/CosmWasm/wasmvm=github.com/CosmWasm/wasmvm@${WASMVM_VERSION} && \
-    go mod tidy && \
-    # Install dependencies
+    # Modify go.mod to use compatible Go version
+    go mod edit -go=1.22 && \
+    # Install dependencies with specific versions
     go mod download && \
-    # Build wasmd binary - for v0.40.0, make build is enough
-    make build && \
-    cp -a ./build/wasmd /go/bin/ && \
+    # Make sure we have the libwasmvm.so in the correct location for the build
+    mkdir -p /go/pkg && \
+    cp /lib/libwasmvm.so /go/pkg/ && \
+    # Build wasmd binary with explicit WASMVM_VERSION
+    LEDGER_ENABLED=false CGO_ENABLED=1 WASMVM_VERSION=${WASMVM_VERSION} go build \
+      -mod=readonly \
+      -tags "netgo" \
+      -ldflags "-w -s -X github.com/cosmos/cosmos-sdk/version.Name=wasmd -X github.com/cosmos/cosmos-sdk/version.AppName=wasmd -X github.com/cosmos/cosmos-sdk/version.Version=${WASMD_VERSION} -X github.com/cosmos/cosmos-sdk/version.ServerName=wasmd" \
+      -o /go/bin/wasmd ./cmd/wasmd && \
     # Verify the binary
-    /go/bin/wasmd version || echo "Version check failed but continuing" && \
-    # Check library dependencies
-    ldd /go/bin/wasmd | grep wasmvm || echo "No wasmvm in ldd output"
+    /go/bin/wasmd version
 
 # Final stage
 FROM debian:bookworm-slim
@@ -67,9 +69,9 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     procps \
     wget \
-    lsof \
-    strace \
-    file \
+    gcc \
+    libc6-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python3-venv for virtual environment support
@@ -85,10 +87,7 @@ RUN python3 -m venv /venv \
         pydantic==2.6.1 \
         python-dotenv==1.0.1 \
         orjson==3.9.12 \
-        pymongo==4.6.1 \
-        prometheus-client==0.18.0 \
-        asyncio==3.4.3 \
-        psutil==5.9.5
+        pymongo==4.6.1
 
 # Copy the wasmd binary from builder stage
 COPY --from=builder /go/bin/wasmd /usr/local/bin/wasmd
@@ -98,7 +97,7 @@ COPY --from=builder /lib/libwasmvm.so /lib/libwasmvm.so
 RUN chmod 755 /lib/libwasmvm.so && \
     ln -sf /lib/libwasmvm.so /lib/libwasmvm.aarch64.so && \
     ln -sf /lib/libwasmvm.so /lib/libwasmvm.x86_64.so && \
-    # Ensure /lib and /usr/lib are different directories before creating symlink
+    # Check if /lib and /usr/lib are different directories
     if [ "$(readlink -f /lib)" != "$(readlink -f /usr/lib)" ]; then \
         ln -sf /lib/libwasmvm.so /usr/lib/libwasmvm.so; \
     else \
@@ -108,9 +107,7 @@ RUN chmod 755 /lib/libwasmvm.so && \
 # Verify wasmd version and library availability
 RUN wasmd version || echo "Unable to check version but continuing" && \
     ls -la /lib/libwasmvm* && \
-    ldd /usr/local/bin/wasmd || echo "Skipping ldd check" && \
-    # Check if binary is linked to the right library
-    ldd /usr/local/bin/wasmd | grep wasmvm || echo "No wasmvm in ldd output"
+    ldd /usr/local/bin/wasmd || echo "Skipping ldd check"
 
 # Set up the library path and environment variables
 ENV LD_LIBRARY_PATH=/lib:/usr/lib
@@ -124,10 +121,10 @@ WORKDIR /root
 RUN mkdir -p /root/.wasmd && chmod 755 /root/.wasmd
 
 # Set up the chain directory for FastAPI
-RUN mkdir -p /root/chain
+RUN mkdir -p /chain
 
-# Copy FastAPI source code (models, routes, main.py, etc.)
-COPY chain /root/chain
+# Copy FastAPI code
+COPY chain /chain
 
 # Create log directory for API output
 RUN mkdir -p /var/log

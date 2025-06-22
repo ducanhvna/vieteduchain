@@ -2,8 +2,8 @@ services:
   wasm-node:
     platform: linux/amd64
     build:
-      context: ../..  # build context là thư mục be/educhain
-      dockerfile: deployments/devnet/Dockerfile.v124
+      context: ../../..  # build context là thư mục gốc project
+      dockerfile: be/educhain/deployments/devnet/Dockerfile.v124
     container_name: wasm-node
     restart: unless-stopped
     ports:
@@ -16,11 +16,63 @@ services:
       - ./data:/root/.wasmd
       - ./enhanced_start_v124.sh:/root/enhanced_start.sh
       - ./monitor_services.sh:/root/monitor_services.sh
-      - ../../chain:/root/chain
+      - ../../be/educhain/chain:/root/educhain/chain  # Mount mã nguồn backend FastAPI
     environment:
       - DAEMON_NAME=wasmd
       - DAEMON_HOME=/root/.wasmd
       - CHAIN_ID=educhain
       - CLEAN_START=true  # Set to true for fresh start, then can set to false after first run
       - LD_LIBRARY_PATH=/lib:/usr/lib
+      - MINIO_ENDPOINT=http://minio:9000  # Thêm endpoint MinIO để FastAPI có thể kết nối
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=educhain-data
     entrypoint: ["/bin/bash", "/root/enhanced_start.sh"]
+    networks:
+      - educhain-network
+      
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"  # API port
+      - "9001:9001"  # Console port
+    volumes:
+      - minio-data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_DOMAIN=minio
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - educhain-network
+      
+  # Service tạo bucket ban đầu
+  createbuckets:
+    image: minio/mc
+    container_name: createbuckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb myminio/educhain-data;
+      /usr/bin/mc policy set public myminio/educhain-data;
+      exit 0;
+      "
+    networks:
+      - educhain-network
+
+volumes:
+  minio-data:
+    driver: local
+
+networks:
+  educhain-network:
+    driver: bridge
