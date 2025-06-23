@@ -216,8 +216,15 @@ EOF
   # Give a moment for any existing process to terminate
   sleep 1
   
+  # Install any missing Python dependencies
+  echo -e "${YELLOW}Installing required Python packages...${NC}"
+  /venv/bin/pip install -r /root/chain/requirements.txt
+  /venv/bin/pip install minio prometheus-client psutil httpx pymongo asyncio pydantic python-dotenv orjson
+
   # Run directly with uvicorn to avoid module loading issues
-  nohup /venv/bin/uvicorn main:app --host 0.0.0.0 --port 1318 > /var/log/fastapi.log 2>&1 &
+  echo -e "${YELLOW}Starting uvicorn with: /venv/bin/uvicorn main:app --host 0.0.0.0 --port 1318${NC}"
+  ls -la /root/chain  # Debug: Show what files are in the directory
+  PYTHONPATH=/root/chain nohup /venv/bin/uvicorn main:app --host 0.0.0.0 --port 1318 > /var/log/fastapi.log 2>&1 &
   FASTAPI_PID=$!
   
   # Wait a bit for the server to start
@@ -433,6 +440,20 @@ if [ -f "/root/monitor_services.sh" ]; then
   echo -e "${GREEN}Services monitoring started with PID: $SERVICES_MONITOR_PID${NC}"
 fi
 
-# Start wasmd node with health check
+# Start wasmd node
 echo -e "${YELLOW}Starting wasmd node...${NC}"
-exec wasmd start --rpc.laddr tcp://0.0.0.0:26657 --api.enable --api.address tcp://0.0.0.0:1317 --grpc.address 0.0.0.0:9090 --log_level info --home=$DAEMON_HOME
+nohup wasmd start --rpc.laddr tcp://0.0.0.0:26657 --api.enable --api.address tcp://0.0.0.0:1317 --grpc.address 0.0.0.0:9090 --log_level info --home=$DAEMON_HOME > /var/log/wasmd.log 2>&1 &
+WASMD_PID=$!
+echo $WASMD_PID > /var/run/wasmd.pid
+
+# Check if wasmd is running
+sleep 5
+if ps -p $WASMD_PID > /dev/null; then
+  echo -e "${GREEN}Wasmd started successfully with PID: $WASMD_PID${NC}"
+else
+  echo -e "${RED}Failed to start wasmd. Check logs at /var/log/wasmd.log${NC}"
+  exit 1
+fi
+
+# Keep container running
+tail -f /var/log/wasmd.log
