@@ -14,14 +14,9 @@ COPY package.json ./
 # Xóa cache và cài đặt dependencies
 RUN npm cache clean --force
 
-# RUN npm install recharts --force
 
 # Cài đặt dependencies trước
 RUN npm install --force
-# RUN npm install recharts --force
-# RUN npm install echarts echarts-for-react echarts-gl --force
-# RUN npm install react-3d-pie-chart d3 --force
-# RUN npm install react-plotly.js plotly.js --force
 
 # Sao chép toàn bộ mã nguồn vào container
 COPY . .
@@ -30,7 +25,7 @@ RUN ls -l src/components/  # Kiểm tra Grid.module.css
 # Kiểm tra xem thư viện `chart.js` đã được cài chưa
 # RUN npm run lint && npm run build
 # Xây dựng ứng dụng Next.js
-RUN npm run build
+# RUN npm run build
 
 # Chạy ứng dụng trong chế độ production
 CMD ["sh", "-c", "npm run build && npm start"]
