@@ -2,7 +2,7 @@
 
 ## TỔNG QUAN
 
-VietEduChain là một dự án blockchain được xây dựng trên nền tảng Cosmos SDK, được thiết kế để hỗ trợ các quy trình giáo dục thông qua các ứng dụng phi tập trung và hợp đồng thông minh. Dự án nhằm nâng cao tính minh bạch, bảo mật và hiệu quả trong các hoạt động giáo dục, bao gồm cấp chứng chỉ, quản lý danh tính, xử lý thanh toán, tính toàn vẹn trong nghiên cứu và minh bạch trong tuyển sinh.
+VietEduChain là một dự án blockchain được xây dựng trên nền tảng Cosmos SDK, được thiết kế để hỗ trợ quy trình quản lý chất lượng đào tạo đại học tại Việt Nam thông qua các ứng dụng phi tập trung và hợp đồng thông minh. Dự án nhằm nâng cao tính minh bạch, bảo mật và hiệu quả trong các hoạt động quản lý giáo dục, bao gồm cấp bằng và chứng chỉ, quản lý danh tính (các trường đại học, cá nhân, bằng và chứng chỉ, v.v...), xử lý thanh toán, tính toàn vẹn trong nghiên cứu và minh bạch trong tuyển sinh, đào tạo.
 
 ## MỤC TIÊU VÀ PHẠM VI DỰ ÁN
 
