@@ -1,4 +1,4 @@
-# VietEduChain
+# DNU-FTA-VietEduChain
 
 ## TỔNG QUAN
 
