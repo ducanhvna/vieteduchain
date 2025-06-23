@@ -146,7 +146,7 @@ npm run build
 npm run start
 ```
 
-**Lưu ý quan trọng**: Môi trường server sẽ không tự động đồng bộ hóa với môi trường phát triển riêng của người phát triển hệ thống. Dữ liệu blockchain, trạng thái tài khoản và tương tác hợp đồng từ môi trường phát triển riêng của người phát triển sẽ không có trên server. Mỗi lần triển khai tạo ra một phiên bản blockchain mới với trạng thái ban đầu.
+**Lưu ý quan trọng**: Môi trường server sẽ không tự động đồng bộ hóa với môi trường phát triển riêng của bạn (người phát triển hệ thống). Dữ liệu blockchain, trạng thái tài khoản và tương tác hợp đồng từ môi trường phát triển riêng của bạn sẽ không có trên server. Mỗi lần triển khai tạo ra một phiên bản blockchain mới với trạng thái ban đầu.
 
 ### Tương tác với Contracts
 
