@@ -184,7 +184,7 @@ npm clean-install
 npm run dev
 ```
 
-## ĐÓNG GÓP
+## CÁC Ý KIẾN ĐÓNG GÓP HOÀN THIỆN
 
 Chúng tôi hoan nghênh những ý kiến đóng góp bổ sung và hoàn thiện! Vui lòng gửi pull request hoặc mở issue cho bất kỳ sự hoàn thiện, nâng cấp hoặc sửa lỗi.
 
