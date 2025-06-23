@@ -51,6 +51,9 @@ export default function RootLayout({
                       {
                         name: "eduid",
                         list: "/eduid",
+                        create: "/eduid/create",
+                        edit: "/eduid/edit",
+                        show: "/eduid/show",
                         meta: { label: "EduID" },
                       },
                       {
@@ -77,6 +80,12 @@ export default function RootLayout({
                         name: "nodeinfo",
                         list: "/nodeinfo",
                         meta: { label: "Node Info" },
+                      },
+                      {
+                        name: "contracts",
+                        list: "/contracts",
+                        show: "/contracts/:address",
+                        meta: { label: "Smart Contracts" },
                       },
                       {
                         name: "eduadmission",

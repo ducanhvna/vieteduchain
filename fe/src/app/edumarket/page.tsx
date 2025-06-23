@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '@/config';
+import { EDUMARKET_CONTRACT_ADDRESS } from '@/contract-addresses';
 import { Card, Input, Button, Table, message as antdMessage, Space, Typography, Form } from 'antd';
 
 interface CourseNFT {
@@ -30,8 +31,11 @@ export default function Page() {
   async function fetchNFTs() {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/edumarket`);
-      setNfts(res.data);
+      const contractAddress = EDUMARKET_CONTRACT_ADDRESS;
+      const query = btoa(JSON.stringify({ get_all_nfts: {} }));
+      const res = await fetch(`${API_BASE_URL}/cosmwasm/wasm/v1/contract/${contractAddress}/smart/${query}`);
+      const data = await res.json();
+      setNfts(data.nfts || []);
       setError(null);
     } catch (e: any) {
       setError('Failed to load NFTs');
@@ -42,37 +46,84 @@ export default function Page() {
   async function handleMint(values: typeof mintData) {
     setMessage('');
     try {
-      await axios.post(`${API_BASE_URL}/api/edumarket/mint`, {
-        ...values,
-        price: values.price,
+      const contractAddress = EDUMARKET_CONTRACT_ADDRESS;
+      const sender = values.creator;
+      const msg = {
+        mint_nft: {
+          id: values.id,
+          metadata: values.metadata,
+          price: values.price
+        }
+      };
+      const payload = {
+        type: 'cosmwasm/MsgExecuteContract',
+        value: {
+          sender,
+          contract: contractAddress,
+          msg,
+          funds: []
+        }
+      };
+      const res = await fetch(`${API_BASE_URL}/cosmwasm/wasm/v1/tx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-      setMessage('Minted successfully!');
-      antdMessage.success('Minted successfully!');
-      setMintData({ id: '', metadata: '', price: '', creator: '' });
-      fetchNFTs();
+      const data = await res.json();
+      if (data.txhash) {
+        setMessage('Minted successfully!');
+        antdMessage.success('Minted successfully!');
+        setMintData({ id: '', metadata: '', price: '', creator: '' });
+        fetchNFTs();
+      } else {
+        setMessage(data.detail || 'Mint failed');
+        antdMessage.error(data.detail || 'Mint failed');
+      }
     } catch (e: any) {
-      setMessage(e.response?.data?.detail || 'Mint failed');
-      antdMessage.error(e.response?.data?.detail || 'Mint failed');
+      setMessage('Mint failed');
+      antdMessage.error('Mint failed');
     }
   }
 
   async function handleBuy(values: { id: string; buyer: string; amount: string }) {
     setMessage('');
     try {
-      await axios.post(`${API_BASE_URL}/api/edumarket/buy`, {
-        id: values.id,
-        buyer: values.buyer,
-        amount: values.amount,
+      const contractAddress = EDUMARKET_CONTRACT_ADDRESS;
+      const sender = values.buyer;
+      const msg = {
+        buy_nft: {
+          id: values.id
+        }
+      };
+      const payload = {
+        type: 'cosmwasm/MsgExecuteContract',
+        value: {
+          sender,
+          contract: contractAddress,
+          msg,
+          funds: [{ denom: 'evnd', amount: values.amount }]
+        }
+      };
+      const res = await fetch(`${API_BASE_URL}/cosmwasm/wasm/v1/tx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-      setMessage('Bought successfully!');
-      antdMessage.success('Bought successfully!');
-      setBuyId('');
-      setBuyer('');
-      setAmount('');
-      fetchNFTs();
+      const data = await res.json();
+      if (data.txhash) {
+        setMessage('Bought successfully!');
+        antdMessage.success('Bought successfully!');
+        setBuyId('');
+        setBuyer('');
+        setAmount('');
+        fetchNFTs();
+      } else {
+        setMessage(data.detail || 'Buy failed');
+        antdMessage.error(data.detail || 'Buy failed');
+      }
     } catch (e: any) {
-      setMessage(e.response?.data?.detail || 'Buy failed');
-      antdMessage.error(e.response?.data?.detail || 'Buy failed');
+      setMessage('Buy failed');
+      antdMessage.error('Buy failed');
     }
   }
 

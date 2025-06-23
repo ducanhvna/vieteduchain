@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { API_BASE_URL } from '@/config';
+import { API_BASE_URL, NODEINFO_URL } from '@/config';
 import { Card, Typography, List, Button, Input, Alert, Spin, Table, Space } from 'antd';
+import ContractWidget from '@/components/contract-widget';
 
 interface NodeProfile {
   id: string;
@@ -25,7 +26,7 @@ export default function Page() {
       setLoading(true);
       setError('');
       try {
-        const res = await fetch(`${API_BASE_URL}/api/nodeinfo`);
+        const res = await fetch(`${NODEINFO_URL}/nodeinfo`);
         if (!res.ok) throw new Error('Không lấy được thông tin node');
         const data = await res.json();
         setNodeinfo(data);
@@ -161,6 +162,11 @@ export default function Page() {
           </Space>
         </Card>
       </Space>
+      
+      {/* Smart Contracts Section */}
+      <div style={{ marginTop: 32 }}>
+        <ContractWidget maxDisplay={5} title="Smart Contracts trên Node" />
+      </div>
     </Card>
   );
 }

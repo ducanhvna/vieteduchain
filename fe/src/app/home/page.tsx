@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { API_BASE_URL } from '@/config';
 import { Card, Typography, List, Spin } from 'antd';
 import type { ListProps } from 'antd';
+import ContractWidget from '@/components/contract-widget';
 
 interface MenuItem {
   label: React.ReactNode;
@@ -88,6 +89,7 @@ export default function Page() {
           Quyền cấp bằng: {currentPermission ? 'ĐƯỢC CẤP' : 'KHÔNG ĐƯỢC CẤP'}
         </Typography.Paragraph>
       )}
+      <ContractWidget maxDisplay={3} title="Smart Contracts mới" />
     </Card>
   );
 }
