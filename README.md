@@ -8,10 +8,9 @@ VietEduChain là một dự án blockchain được xây dựng trên nền tả
 
 ### Mục tiêu tổng quát
 
-1. Xây dựng VietEduChain – chuỗi khối Layer-1 chuyên biệt cho giáo dục Việt Nam, đáp ứng đồng thời ba trụ cột:
-2. Hiệu năng cấp hạ tầng: thông lượng ≥ 30.000 giao dịch/giây; thời gian hoàn tất ("finality") ≈ 1,2 giây; phí giao dịch < 0,1% giá trị.
-3. Chuẩn dữ liệu quốc tế: hỗ trợ đầy đủ Verifiable Credential (VC) và Decentralized Identifier (DID) theo khuyến nghị W3C; sẵn sàng liên thông qua Inter-Blockchain Communication (IBC).
-4. Phục vụ trọn chu trình giáo dục: từ cấp phát văn bằng, tuyển sinh, học phí, đến lưu vết nghiên cứu khoa học – bảo đảm minh bạch, an toàn dữ liệu và khả năng mở rộng lâu dài.
+1. Xây dựng VietEduChain Layer-1 chuyên biệt cho giáo dục đại học của Việt Nam, đáp ứng đồng thời ba trụ cột: (1) Hiệu năng cấp hạ tầng; (2) thông lượng ≥ 30.000 giao dịch/giây; (3) thời gian hoàn tất ("finality") ≈ 1,2 giây; phí giao dịch < 0,1% giá trị.
+2. Chuẩn dữ liệu quốc tế: hỗ trợ đầy đủ Verifiable Credential (VC) và Decentralized Identifier (DID) theo khuyến nghị W3C; sẵn sàng liên thông qua Inter-Blockchain Communication (IBC).
+3. Phục vụ trọn chu trình giáo dục: từ cấp phát văn bằng, tuyển sinh, học phí, đến lưu vết nghiên cứu khoa học – bảo đảm minh bạch, an toàn dữ liệu và khả năng mở rộng lâu dài.
 
 ## TÍNH NĂNG
 
@@ -37,15 +36,15 @@ VietEduChain là một dự án blockchain được xây dựng trên nền tả
 
 Dự án bao gồm các hợp đồng thông minh sau:
 
-1. **EduCert**: Quản lý văn bằng giáo dục, xử lý việc cấp, xác minh và thu hồi chứng chỉ giáo dục.
+1. **EduCert**: Quản lý văn bằng tốt nghiệp và chứng chỉ: xử lý việc cấp, xác minh và thu hồi bằng tốt nghiệp cũng như đối với chứng chỉ các khóa đào tạo ngắn hạn.
 
-2. **EduPay**: Xử lý thanh toán học phí an toàn giữa các tổ chức giáo dục và sinh viên.
+2. **EduPay**: Xử lý thanh toán học phí an toàn giữa các cơ sở đào tạo và sinh viên.
 
-3. **EduID**: Xác minh danh tính dựa trên hệ thống nhận dạng phi tập trung (DID) cho ngữ cảnh giáo dục.
+3. **EduID**: Xác minh danh tính dựa trên hệ thống nhận dạng phi tập trung (DID) cho ngữ cảnh đào tạo.
 
-4. **ResearchLedger**: Ghi chép và xác minh đóng góp nghiên cứu và xuất bản, chống đạo văn.
+4. **ResearchLedger**: Ghi chép và xác minh đóng góp nghiên cứu khoa học và xuất bản, chống đạo văn.
 
-5. **EduAdmission**: Quản lý quá trình tuyển sinh giữa các tổ chức giáo dục và ứng viên.
+5. **EduAdmission**: Quản lý quá trình tuyển sinh của các cơ sở đào tạo và tiêu chuẩn của thí sinh.
 
 ## BẮT ĐẦU
 
@@ -147,11 +146,11 @@ npm run build
 npm run start
 ```
 
-**Lưu ý quan trọng**: Môi trường server sẽ không tự động đồng bộ hóa với môi trường phát triển địa phương của bạn. Dữ liệu blockchain, trạng thái tài khoản và tương tác hợp đồng từ môi trường phát triển địa phương của bạn sẽ không có trên server. Mỗi lần triển khai tạo ra một phiên bản blockchain mới với trạng thái ban đầu.
+**Lưu ý quan trọng**: Môi trường server sẽ không tự động đồng bộ hóa với môi trường phát triển riêng của người phát triển hệ thống. Dữ liệu blockchain, trạng thái tài khoản và tương tác hợp đồng từ môi trường phát triển riêng của người phát triển sẽ không có trên server. Mỗi lần triển khai tạo ra một phiên bản blockchain mới với trạng thái ban đầu.
 
 ### Tương tác với Contracts
 
-Sau khi triển khai, bạn có thể tương tác với các contract bằng các script được cung cấp:
+Sau khi triển khai, bạn có thể tương tác với các hợp đồng thông minh bằng các script được cung cấp:
 
 ```bash
 cd be/educhain/deployments/scripts
@@ -187,7 +186,7 @@ npm run dev
 
 ## ĐÓNG GÓP
 
-Chúng tôi hoan nghênh đóng góp! Vui lòng gửi pull request hoặc mở issue cho bất kỳ cải tiến hoặc sửa lỗi nào.
+Chúng tôi hoan nghênh những ý kiến đóng góp bổ sung và hoàn thiện! Vui lòng gửi pull request hoặc mở issue cho bất kỳ sự hoàn thiện, nâng cấp hoặc sửa lỗi.
 
 ## GIẤY PHÉP
 
@@ -229,8 +228,8 @@ Module quản lý nghiên cứu khoa học:
 
 ### EduAdmission
 
-Module quản lý tuyển sinh minh bạch:
+Module quản lý tuyển sinh theo quy định của Bộ Giáo dục và Đào tạo:
 - Đăng ký tuyển sinh
 - Xác nhận kết quả
-- Công bố điểm và thứ hạng
-- Xác thực quy trình tuyển sinh
+- Công bố điểm và kết quả tuyển sinh vào ngành học theo các nguyện vọng đăng ký.
+- Xác thực quy trình và kết quả tuyển sinh của cơ sở đào tạo
