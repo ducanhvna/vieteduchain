@@ -44,9 +44,34 @@ export default function RootLayout({
                     notificationProvider={useNotificationProvider}
                     resources={[
                       {
-                        name: "vote",
-                        list: "/vote",
-                        meta: { label: "Vote" },
+                        name: "eduadmission",
+                        list: "/eduadmission",
+                        meta: { label: "EduAdmission" },
+                      },
+                       {
+                        name: "course-completion",
+                        list: "/course-completion",
+                        meta: { label: "Edu Study" },
+                      },
+                      
+                      {
+                        name: "edupay",
+                        list: "/edupay",
+                        meta: { label: "EduPay" },
+                      },
+                     
+                      
+                      {
+                        name: "certificates",
+                        list: "/certificates",
+                        meta: { label: "EduCert" },
+                      },
+                      
+                      {
+                     
+                        name: "researchledger",
+                        list: "/researchledger",
+                        meta: { label: "Research Ledger" },
                       },
                       {
                         name: "eduid",
@@ -55,87 +80,6 @@ export default function RootLayout({
                         edit: "/eduid/edit",
                         show: "/eduid/show",
                         meta: { label: "EduID" },
-                      },
-                      {
-                        name: "edupay",
-                        list: "/edupay",
-                        meta: { label: "EduPay" },
-                      },
-                      {
-                        name: "grant",
-                        list: "/grant",
-                        meta: { label: "Grant" },
-                      },
-                      {
-                        name: "edumarket",
-                        list: "/edumarket",
-                        meta: { label: "EduMarket" },
-                      },
-                      {
-                        name: "home",
-                        list: "/home",
-                        meta: { label: "Home" },
-                      },
-                      {
-                        name: "nodeinfo",
-                        list: "/nodeinfo",
-                        meta: { label: "Node Info" },
-                      },
-                      {
-                        name: "contracts",
-                        list: "/contracts",
-                        show: "/contracts/:address",
-                        meta: { label: "Smart Contracts" },
-                      },
-                      {
-                        name: "eduadmission",
-                        list: "/eduadmission",
-                        meta: { label: "EduAdmission" },
-                      },
-                      {
-                        name: "certificates",
-                        list: "/certificates",
-                        meta: { label: "Certificates" },
-                      },
-                      {
-                        name: "course-completion",
-                        list: "/course-completion",
-                        meta: { label: "Course Completion" },
-                      },
-                      {
-                        name: "degree-issuance",
-                        list: "/degree-issuance",
-                        meta: { label: "Degree Issuance" },
-                      },
-                      {
-                        name: "upload",
-                        list: "/upload",
-                        meta: { label: "Upload" },
-                      },
-                      {
-                        name: "researchledger",
-                        list: "/researchledger",
-                        meta: { label: "Research Ledger" },
-                      },
-                      {
-                        name: "blog_posts",
-                        list: "/blog-posts",
-                        create: "/blog-posts/create",
-                        edit: "/blog-posts/edit/:id",
-                        show: "/blog-posts/show/:id",
-                        meta: {
-                          canDelete: true,
-                        },
-                      },
-                      {
-                        name: "categories",
-                        list: "/categories",
-                        create: "/categories/create",
-                        edit: "/categories/edit/:id",
-                        show: "/categories/show/:id",
-                        meta: {
-                          canDelete: true,
-                        },
                       },
                     ]}
                     options={{
