@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { API_BASE_URL } from '@/config';
 import { Card, Tabs, Input, Button, Space, Typography, message as antdMessage } from 'antd';
+import type { ChangeEvent } from 'react';
 
 export default function Page() {
   const [tab, setTab] = useState<'register'|'mint'|'plagiarism'|'reward'|'query'|'list'|'search'>('register');
@@ -48,15 +49,27 @@ export default function Page() {
   const handleMint = async () => {
     setMessage(''); setResult(null);
     try {
+      // Generate a unique token ID if not provided
+      const token_id = `doi-${Date.now()}`;
+      
       const res = await fetch(`${API_BASE_URL}/api/research/mint_doi_nft`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hash: mintHash, doi: mintDoi, owner: mintOwner })
+        body: JSON.stringify({ 
+          token_id: token_id,
+          hash: mintHash, 
+          doi: mintDoi, 
+          owner: mintOwner 
+        })
       });
       const data = await res.json();
       setMessage(data.success ? 'Mint NFT thành công!' : data.detail || 'Lỗi mint NFT');
-      setResult(data.record);
+      setResult(data);
       antdMessage[data.success ? 'success' : 'error'](data.success ? 'Mint NFT thành công!' : data.detail || 'Lỗi mint NFT');
-    } catch { setMessage('Lỗi khi mint NFT'); antdMessage.error('Lỗi khi mint NFT'); }
+    } catch (error) { 
+      console.error("Error minting NFT:", error);
+      setMessage('Lỗi khi mint NFT'); 
+      antdMessage.error('Lỗi khi mint NFT'); 
+    }
   };
   const handlePlagiarism = async () => {
     setMessage(''); setResult(null);
