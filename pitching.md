@@ -83,7 +83,18 @@ Hệ thống sử dụng các smart contract CosmWasm (Rust) tổ chức thành 
 - Các smart contract core không hoạt động rời rạc mà liên kết thành một hệ sinh thái dữ liệu xuyên suốt, đảm bảo xác thực, minh bạch, mở rộng linh hoạt cho các nghiệp vụ giáo dục số hóa.
 
 
+
 ### 3.5. Quy trình minigame, nhận thưởng và mint NFT
+
+**Lý do cần tạo ra các giá trị gia tăng (minigame, nhận thưởng, NFT, nhiệm vụ cộng đồng...):**
+- Trong hệ sinh thái blockchain giáo dục, nếu chỉ cung cấp các chức năng truyền thống như lưu trữ chứng chỉ, tuyển sinh, thanh toán... sẽ khó tạo động lực cho người dùng mới tham gia, trải nghiệm và gắn bó lâu dài.
+- Việc bổ sung các giá trị gia tăng như minigame, nhiệm vụ nhận thưởng, NFT vật phẩm, sự kiện cộng đồng, phần thưởng token... giúp:
+  - Thu hút người dùng mới, tạo hiệu ứng lan tỏa, viral marketing.
+  - Tăng tương tác, giữ chân người dùng, xây dựng cộng đồng tích cực.
+  - Khuyến khích người dùng xác thực định danh (DID), liên kết ví, hoàn thiện hồ sơ.
+  - Tạo thêm nhiều luồng dữ liệu, giao dịch, giúp hệ sinh thái phát triển bền vững.
+  - Tăng giá trị sử dụng thực tế cho token (eVND, NFT), tạo động lực cho các node vận hành.
+- Đây là xu hướng chung của các hệ sinh thái blockchain hiện đại: kết hợp nghiệp vụ cốt lõi với các dịch vụ gia tăng, gamification, phần thưởng để tạo trải nghiệm hấp dẫn, thúc đẩy tăng trưởng tự nhiên.
 
 
 #### 3.5.1. Khái niệm "mint NFT chứng chỉ" và quan hệ client với hệ thống
