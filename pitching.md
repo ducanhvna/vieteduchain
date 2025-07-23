@@ -201,9 +201,8 @@ Mint NFT chứng chỉ là một phần quan trọng trong hệ sinh thái, có 
 
 - **Tính mở rộng**: Việc mint token (NFT hoặc fungible token) hoàn toàn có thể mở rộng cho các dịch vụ, ứng dụng mới trong tương lai, giúp hệ sinh thái luôn năng động và sáng tạo.
 
-## 4. Quy trình build & deploy
--
-### 3.5. So sánh và liên hệ với các hệ thống hiện có
+
+### 3.6. So sánh và liên hệ với các hệ thống hiện có
 
 Kiến trúc API mở của VietEduChain lấy cảm hứng và có nhiều điểm tương đồng với các hệ sinh thái blockchain lớn trên thế giới, nhưng cũng có những điểm khác biệt nổi bật:
 
@@ -228,6 +227,49 @@ VietEduChain không chỉ cung cấp API blockchain truyền thống mà còn m�
 - Sử dụng Docker multi-stage build để tối ưu image backend.
 - Quản lý các service bằng docker-compose, dễ dàng mở rộng và tích hợp CI/CD.
 - Hỗ trợ mount mã nguồn backend để phát triển nhanh.
+
+
+## 4. Quy trình build & deploy
+
+Quy trình build & deploy backend VietEduChain sử dụng Docker multi-stage build, docker-compose và các script tự động hóa để đảm bảo môi trường đồng nhất, dễ mở rộng, dễ phát triển và vận hành:
+
+### 4.1. Build image backend đa tầng (multi-stage)
+- Sử dụng Dockerfile (Go, Rust, Python) để build các binary cần thiết:
+  - Build `libwasmvm.so` (CosmWasm VM) phù hợp kiến trúc máy chủ.
+  - Build `wasmd` từ source (Cosmos SDK v0.40.0, wasmvm v1.2.4).
+  - Cài đặt Python 3, FastAPI, uvicorn, httpx, pydantic, pymongo, orjson, minio client, các thư viện backend.
+  - Tạo virtualenv cho backend Python, đảm bảo môi trường cô lập.
+- Tối ưu image cuối cùng chỉ chứa các binary, thư viện và mã nguồn cần thiết, giảm dung lượng, tăng bảo mật.
+
+### 4.2. Khởi tạo dịch vụ bằng docker-compose
+- Sử dụng file `docker-compose.v124.yml` để khởi tạo đồng thời các service:
+  - `wasm-node`: Chạy blockchain node (wasmd), backend FastAPI, mount mã nguồn backend để phát triển nhanh.
+  - `minio`: Chạy object storage MinIO, phục vụ lưu trữ dữ liệu lớn, metadata, file động.
+- Cấu hình các biến môi trường: địa chỉ contract, endpoint MinIO, thông tin chain, thông số khởi tạo.
+- Expose các port: 26656 (P2P), 26657 (RPC), 1317 (Cosmos REST), 1318 (FastAPI), 9090 (gRPC), 9000/9001 (MinIO).
+- Mount volume dữ liệu blockchain, script khởi động, mã nguồn backend vào container.
+
+### 4.3. Script khởi động tự động hóa (enhanced_start_v124.sh)
+- Kiểm tra/cấu hình biến môi trường, kiểm tra thư viện, binary cần thiết.
+- Nếu `CLEAN_START=true`, xóa dữ liệu cũ, khởi tạo lại chain (init genesis, tạo validator, add account, gentx, collect-gentxs).
+- Tự động chỉnh sửa config (CORS, Prometheus, API, gas fee).
+- Đảm bảo MinIO bucket tồn tại, tự động tạo nếu chưa có.
+- Cài đặt và khởi động FastAPI backend (tự động tạo main.py, requirements.txt nếu thiếu, cài package, chạy uvicorn trên port 1318, log ra file).
+- Giám sát tiến trình FastAPI, tự động restart nếu bị lỗi hoặc dừng đột ngột.
+- Khởi động node wasmd với các tham số phù hợp, log ra file, kiểm tra PID.
+- Nếu có script monitor_services.sh, tự động chạy để giám sát toàn bộ dịch vụ.
+
+### 4.4. Quy trình phát triển nhanh (dev hot reload)
+- Mount mã nguồn backend Python vào container, cho phép sửa code và reload API mà không cần rebuild image.
+- Có thể mount script, file cấu hình, dữ liệu test để phát triển linh hoạt.
+
+### 4.5. Theo dõi log, kiểm tra sức khỏe, tự động phục hồi
+- Log FastAPI, wasmd, monitor ra các file riêng biệt trong container, dễ dàng kiểm tra bằng lệnh tail hoặc docker logs.
+- Script giám sát kiểm tra tiến trình FastAPI, wasmd, tự động restart nếu phát hiện lỗi hoặc dừng bất thường.
+- Healthcheck MinIO tích hợp sẵn trong docker-compose, đảm bảo storage luôn sẵn sàng.
+
+**Tóm lại:**
+Toàn bộ quy trình build & deploy backend VietEduChain được tự động hóa, đảm bảo môi trường đồng nhất, dễ mở rộng, dễ phát triển và vận hành. Chỉ cần chạy `docker-compose up -d` là có thể khởi tạo đầy đủ blockchain node, backend API, object storage, sẵn sàng tích hợp với frontend và các dịch vụ khác.
 
 ## 5. Ưu điểm kỹ thuật
 - **Permissioned blockchain**: Kiểm soát truy cập, phù hợp nghiệp vụ giáo dục.
