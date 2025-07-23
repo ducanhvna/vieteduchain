@@ -52,19 +52,43 @@ VietEduChain là nền tảng blockchain permissioned dựa trên Cosmos SDK, t�
 
 ## 3. Thành phần kỹ thuật chính
 ### 3.1. Blockchain Node (wasm-node)
-- **Dockerfile:**
-  - Build từ `golang:1.22-bookworm` và `debian:bookworm-slim`.
-  - Cài đặt các công cụ build (git, make, gcc, rust, cargo).
-  - Build `libwasmvm.so` từ source CosmWasm/wasmvm.
-  - Build `wasmd` từ source CosmWasm/wasmd (v0.40.0, wasmvm v1.2.4).
-  - Thiết lập môi trường Python 3, FastAPI, uvicorn, httpx, pydantic, pymongo, orjson.
-  - Tạo virtualenv cho backend Python.
-  - Expose các port: 26656 (P2P), 26657 (RPC), 1317 (Cosmos REST), 1318 (FastAPI), 9090 (gRPC).
-  - Mount mã nguồn backend Python vào container để phát triển linh hoạt.
-- **docker-compose:**
-  - Khởi tạo container `wasm-node` với các biến môi trường cấu hình blockchain, MinIO, contract addresses.
-  - Mount volume dữ liệu blockchain và mã nguồn backend.
-  - Entrypoint: script shell khởi động blockchain và backend API.
+
+#### Thành phần hệ thống backend node
+
+**1. Core Cosmos (wasmd node):**
+  - Chạy blockchain permissioned dựa trên Cosmos SDK (wasmd).
+  - Quản lý consensus, lưu trữ trạng thái, xác thực giao dịch, staking, validator.
+  - Expose các port:
+    - `26656`: P2P (giao tiếp node mạng lưới)
+    - `26657`: RPC (giao tiếp client, truy vấn trạng thái, gửi giao dịch)
+    - `1317`: Cosmos REST API (chuẩn REST Cosmos)
+    - `9090`: gRPC (giao tiếp hiệu năng cao, tích hợp dịch vụ)
+
+**2. Smart contract (CosmWasm):**
+  - Các module hợp đồng thông minh: eduid, educert, eduadmission, edupay, researchledger.
+  - Lưu trữ và xử lý logic nghiệp vụ giáo dục: DID, credential, tuyển sinh, thanh toán, nghiên cứu.
+  - Được deploy và quản lý bởi wasmd node.
+
+**3. API backend (FastAPI):**
+  - Cung cấp API RESTful cho frontend, bot, mobile.
+  - Mapping dữ liệu blockchain, smart contract, MinIO.
+  - Expose port:
+    - `1318`: Custom REST API (FastAPI Python)
+
+**4. MinIO (object storage):**
+  - Lưu trữ dữ liệu lớn, metadata, file động, tài liệu scan, log, v.v.
+  - Expose port:
+    - `9000`: MinIO API (S3 compatible)
+    - `9001`: MinIO console (giao diện quản trị)
+
+**5. Quan hệ các thành phần:**
+  - FastAPI giao tiếp với wasmd (qua RPC, REST, gRPC) và smart contract (CosmWasm) để thực hiện nghiệp vụ.
+  - FastAPI truy xuất/lưu file qua MinIO (metadata, file lớn, dữ liệu động).
+  - Smart contract lưu trạng thái nghiệp vụ, liên kết DID, credential, escrow, v.v.
+  - Các port đảm bảo các thành phần giao tiếp nội bộ và với client/FE.
+
+**Tóm tắt:**
+Các thành phần backend node được tổ chức module hóa, mỗi thành phần đảm nhận một vai trò rõ ràng, giao tiếp qua các port tiêu chuẩn, đảm bảo mở rộng, tích hợp và phát triển linh hoạt.
 
 ### 3.2. MinIO Storage
 - MinIO là hệ thống lưu trữ đối tượng (object storage) phi tập trung, tương thích chuẩn S3, được tích hợp để giải quyết các bài toán lưu trữ dữ liệu lớn, dữ liệu động mà blockchain không phù hợp lưu trực tiếp.
@@ -356,3 +380,48 @@ Dưới đây là một số khó khăn, thách thức kỹ thuật hiện tại
 
 ## 8. Kết luận
 Dự án VietEduChain cung cấp nền tảng blockchain permissioned hiện đại, tích hợp đầy đủ backend, frontend, lưu trữ phi tập trung, phù hợp triển khai các nghiệp vụ giáo dục số hóa, minh bạch và an toàn.
+
+
+---
+
+## 9. Các câu hỏi thường gặp về "mint NFT chứng chỉ" (FAQ)
+
+### 1. Mint NFT chứng chỉ là gì? Có khác gì với cấp chứng chỉ số truyền thống?
+**Trả lời:**
+Mint NFT chứng chỉ là quá trình tạo ra một token không thể thay thế (NFT) trên blockchain, đại diện cho một chứng chỉ số duy nhất. Khác với chứng chỉ số truyền thống (file PDF, QR code, bản in...), NFT chứng chỉ không thể làm giả, không thể chỉnh sửa, có thể xác thực nguồn gốc, lịch sử giao dịch công khai trên blockchain, và gắn liền với định danh phi tập trung (DID) của người sở hữu.
+
+### 2. Ai có thể mint NFT chứng chỉ? Quy trình diễn ra như thế nào?
+**Trả lời:**
+Tổ chức/trường học hoặc hệ thống backend có quyền cấp chứng chỉ sẽ thực hiện mint NFT chứng chỉ cho người dùng khi đủ điều kiện (hoàn thành khóa học, đạt thành tích, được xác nhận...). Quy trình gồm: xác thực điều kiện, gửi lệnh mint tới smart contract, truyền vào DID và metadata, smart contract tạo NFT và gắn với ví/DID của người nhận.
+
+### 3. NFT chứng chỉ lưu trữ những thông tin gì? Có bảo mật không?
+**Trả lời:**
+NFT chứng chỉ lưu các thông tin: tên chứng chỉ, loại, ngày cấp, đơn vị cấp, hash tài liệu gốc, metadata liên quan, liên kết DID của người nhận. Dữ liệu nhạy cảm (file scan, thông tin cá nhân) chỉ lưu hash hoặc reference trên blockchain, còn file thực tế lưu trên MinIO (object storage) để đảm bảo bảo mật và tiết kiệm chi phí.
+
+### 4. Làm sao để xác thực một NFT chứng chỉ là thật?
+**Trả lời:**
+Bất kỳ ai cũng có thể kiểm tra NFT chứng chỉ trên blockchain bằng ID NFT hoặc DID của người nhận. Thông tin về đơn vị cấp, ngày cấp, hash tài liệu gốc, lịch sử giao dịch đều công khai, không thể chỉnh sửa. Có thể tích hợp API xác thực vào website, app, hoặc kiểm tra trực tiếp trên explorer blockchain.
+
+### 5. Nếu mất ví hoặc quên DID thì có lấy lại được NFT chứng chỉ không?
+**Trả lời:**
+Nếu người dùng mất quyền truy cập ví/DID, việc khôi phục NFT chứng chỉ phụ thuộc vào chính sách của đơn vị cấp và hệ thống. Có thể hỗ trợ chuyển nhượng lại NFT sang ví mới sau khi xác minh danh tính, hoặc mint lại NFT mới và thu hồi NFT cũ. Tuy nhiên, người dùng cần bảo quản kỹ thông tin ví/DID để tránh mất mát.
+
+### 6. NFT chứng chỉ có thể chuyển nhượng, bán, hoặc sử dụng cho mục đích khác không?
+**Trả lời:**
+Tùy vào thiết kế smart contract, NFT chứng chỉ có thể cho phép chuyển nhượng hoặc không. Đa số chứng chỉ học tập sẽ không cho phép chuyển nhượng để đảm bảo tính xác thực. Tuy nhiên, NFT có thể dùng làm điều kiện tham gia tuyển sinh, nhận học bổng, hoặc tích hợp với các dịch vụ khác trong hệ sinh thái.
+
+### 7. Phí mint NFT chứng chỉ là ai trả? Có tốn nhiều chi phí không?
+**Trả lời:**
+Phí mint NFT là phí giao dịch blockchain (gas fee), thường do tổ chức cấp hoặc người nhận trả, tùy vào chính sách. Trên VietEduChain, phí này được tối ưu thấp, có thể miễn phí cho người dùng mới (airdrop), hoặc tích hợp vào học phí/dịch vụ. Phí mint giúp đảm bảo mạng lưới vận hành an toàn, chống spam.
+
+### 8. NFT chứng chỉ có thể dùng để xác thực ở đâu? Có được công nhận rộng rãi không?
+**Trả lời:**
+NFT chứng chỉ có thể xác thực trên bất kỳ hệ thống nào tích hợp API blockchain, từ website trường học, đối tác tuyển dụng, đến các nền tảng học tập, việc làm. Việc công nhận rộng rãi phụ thuộc vào sự hợp tác giữa các tổ chức, tiêu chuẩn kỹ thuật, và sự phổ biến của nền tảng blockchain sử dụng.
+
+### 9. Nếu blockchain bị tấn công hoặc dừng hoạt động thì NFT chứng chỉ có bị mất không?
+**Trả lời:**
+Blockchain permissioned như VietEduChain được thiết kế để đảm bảo an toàn, phân tán, chống tấn công. Dữ liệu NFT được lưu trên nhiều node, rất khó bị mất hoặc chỉnh sửa. Ngoài ra, hệ thống có thể backup dữ liệu, lưu hash trên nhiều chain, hoặc tích hợp giải pháp phục hồi để đảm bảo an toàn lâu dài.
+
+### 10. NFT chứng chỉ có thể tích hợp với các hệ thống khác (LMS, tuyển sinh, việc làm...) không?
+**Trả lời:**
+Có. NFT chứng chỉ được thiết kế chuẩn hóa (CW721, metadata mở), dễ dàng tích hợp với các hệ thống quản lý học tập (LMS), tuyển sinh, việc làm, học bổng, hoặc các dịch vụ xác thực khác qua API, webhook, hoặc liên kết DID.
