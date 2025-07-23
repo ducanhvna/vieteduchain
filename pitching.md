@@ -1,3 +1,4 @@
+# Tài liệu mô tả kỹ thuật dự án VietEduChain
 
 ---
 **Tóm tắt tài liệu:**
@@ -36,7 +37,6 @@ Tài liệu này trình bày tổng quan kiến trúc, thành phần kỹ thuậ
 | Mainnet     | Mạng blockchain chính thức                                  |
 | Devnet      | Mạng blockchain phát triển/test                             |
 
-# Tài liệu mô tả kỹ thuật dự án VietEduChain
 
 ## 1. Tổng quan dự án
 VietEduChain là nền tảng blockchain permissioned dựa trên Cosmos SDK, tích hợp các dịch vụ backend (BE) và frontend (FE) để cung cấp các API quản lý định danh, chứng chỉ, thanh toán và lưu trữ dữ liệu phi tập trung cho lĩnh vực giáo dục.
