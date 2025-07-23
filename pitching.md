@@ -243,6 +243,13 @@ Mint NFT chứng chỉ là một phần quan trọng trong hệ sinh thái, có 
        - **Cảnh báo hao hụt số dư:** Nếu người dùng chỉ thực hiện các giao dịch mint (trả phí) mà không nhận được phần thưởng hoặc không có hoạt động sinh lời, số dư eVND trong ví sẽ giảm dần do bị trừ phí giao dịch mỗi lần mint. Để duy trì hoặc tăng số dư, người dùng cần tham gia các hoạt động có phần thưởng đủ lớn hoặc nhận eVND từ các nguồn khác.
        - **Nguồn eVND trả thưởng:** Số eVND node dùng để trả thưởng cho người dùng phải được nạp trước vào ví node/smart contract (từ nhà phát hành, quỹ dự án, hoặc các nguồn khác). Node không nhận lại được số eVND này từ phí giao dịch.
        - **Thời điểm nhận phí:** Node nhận phí giao dịch ngay khi giao dịch được xác thực thành công trên blockchain (trước hoặc cùng lúc với khi client nhận NFT/phần thưởng).
+      - **Lưu ý về động lực và giá trị nhận lại cho client:**
+        - Nếu client chỉ trả phí giao dịch eVND để mint NFT hoặc nhận thưởng mà phần thưởng cũng chỉ là eVND (và số eVND thưởng ≤ phí đã trả), người dùng sẽ không có động lực tham gia lâu dài vì luôn bị hao hụt.
+        - Để đảm bảo hấp dẫn, hệ thống cần:
+          - Phần thưởng phải có giá trị thực tế: NFT, vật phẩm game, huy hiệu, quyền lợi, cơ hội đổi quà, tham gia sự kiện, tích điểm, hoặc có thể giao dịch/chuyển nhượng (nếu thiết kế cho phép).
+          - Số eVND thưởng nên lớn hơn hoặc bằng phí giao dịch, hoặc có các nhiệm vụ miễn phí/airdrop cho người mới để không bị âm quỹ.
+          - NFT/vật phẩm nhận được phải có giá trị sử dụng thực tế trong hệ sinh thái (đổi quà, tích điểm, tham gia hoạt động, bán lại...).
+        - Tóm lại, client cần nhận được giá trị thực ngoài số eVND đã bỏ ra để tạo động lực tham gia, phát triển cộng đồng và giữ chân người dùng. Hệ thống nên thiết kế các luồng nhiệm vụ, minigame, sự kiện, phần thưởng đa dạng để đảm bảo lợi ích cho cả client và node.
        - **Rủi ro lỗ quỹ:** Nếu tổng phí giao dịch thu được nhỏ hơn số eVND node trả thưởng, node sẽ bị âm quỹ và không thể tiếp tục trả thưởng. Để tránh lỗ, cần thiết kế phí giao dịch đủ lớn hoặc có cơ chế bổ sung quỹ cho node.
        - **Tăng hoạt động, tăng uy tín:** Node có nhiều giao dịch, nhiều người dùng sẽ được đánh giá là node hoạt động tích cực, có thể nhận thêm phần thưởng từ hệ thống (staking reward, incentive).
        - **Cơ hội nhận phần thưởng hệ thống:** Một số blockchain có cơ chế chia sẻ phần thưởng (block reward, inflation reward) cho các node tích cực xác thực giao dịch, giúp node kiếm thêm token ngoài phí giao dịch.
