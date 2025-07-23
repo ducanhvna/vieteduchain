@@ -1,3 +1,41 @@
+
+---
+**Tóm tắt tài liệu:**
+Tài liệu này trình bày tổng quan kiến trúc, thành phần kỹ thuật, quy trình vận hành, các luồng nghiệp vụ và giải pháp công nghệ của dự án VietEduChain – một nền tảng blockchain cho giáo dục, tích hợp backend, frontend, smart contract, lưu trữ phi tập trung, cơ chế phần thưởng, NFT, DID và các dịch vụ gia tăng. Tài liệu cũng phân tích ưu điểm, so sánh với các hệ thống hiện có, và nêu các thách thức kỹ thuật thực tế.
+
+**Bảng các từ viết tắt:**
+| Từ viết tắt | Ý nghĩa |
+|-------------|-------------------------------------------------------------|
+| BE          | Backend (hệ thống phía máy chủ)                             |
+| FE          | Frontend (giao diện người dùng)                             |
+| API         | Application Programming Interface (giao diện lập trình ứng dụng) |
+| DID         | Decentralized Identifier (định danh phi tập trung)          |
+| NFT         | Non-Fungible Token (token không thể thay thế)               |
+| eVND        | Electronic VND (stablecoin mô phỏng VNĐ số)                 |
+| MinIO       | Hệ thống lưu trữ đối tượng tương thích S3                   |
+| CI/CD       | Continuous Integration/Continuous Deployment                |
+| VM          | Virtual Machine (máy ảo)                                    |
+| REST        | Representational State Transfer (chuẩn API phổ biến)         |
+| P2P         | Peer-to-Peer (mạng ngang hàng)                              |
+| WASM        | WebAssembly (chuẩn máy ảo thực thi hợp đồng thông minh)      |
+| CosmWasm    | Framework hợp đồng thông minh cho Cosmos SDK                 |
+| FastAPI     | Framework Python cho API hiệu năng cao                      |
+| CW20        | Chuẩn token fungible trên CosmWasm                          |
+| CW721       | Chuẩn NFT trên CosmWasm                                     |
+| RPC         | Remote Procedure Call (giao thức gọi hàm từ xa)             |
+| gRPC        | Giao thức RPC hiệu năng cao của Google                      |
+| S3          | Simple Storage Service (chuẩn lưu trữ đối tượng của AWS)     |
+| Genesis     | Khởi tạo chuỗi blockchain ban đầu                           |
+| Airdrop     | Phát token miễn phí cho người dùng mới                      |
+| Hot reload  | Tự động tải lại mã nguồn khi phát triển                     |
+| Escrow      | Tài khoản ký quỹ trung gian                                 |
+| Staking     | Cơ chế đặt cọc, xác thực mạng lưới                          |
+| Validator   | Node xác thực giao dịch trên blockchain                     |
+| Node        | Máy chủ tham gia mạng blockchain                            |
+| Contract    | Hợp đồng thông minh                                         |
+| Mainnet     | Mạng blockchain chính thức                                  |
+| Devnet      | Mạng blockchain phát triển/test                             |
+
 # Tài liệu mô tả kỹ thuật dự án VietEduChain
 
 ## 1. Tổng quan dự án
