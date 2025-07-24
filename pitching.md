@@ -29,7 +29,7 @@ Tài liệu này trình bày tổng quan kiến trúc, thành phần kỹ thuậ
 | Genesis     | Khởi tạo chuỗi blockchain ban đầu                           |
 | Airdrop     | Phát token miễn phí cho người dùng mới                      |
 | Hot reload  | Tự động tải lại mã nguồn khi phát triển                     |
-| Escrow      | Tài khoản ký quỹ trung gian                                 |
+| Escrow      | Tài khoản ký quỹ trung gian (cơ chế giữ tiền tạm thời, chỉ giải ngân khi đủ điều kiện; thường dùng để đảm bảo an toàn giao dịch giữa học sinh và trường, ví dụ: học phí chỉ chuyển cho trường khi học sinh xác nhận nhập học/thỏa mãn điều kiện hợp đồng) |
 | Staking     | Cơ chế đặt cọc, xác thực mạng lưới                          |
 | Validator   | Node xác thực giao dịch trên blockchain                     |
 | Node        | Máy chủ tham gia mạng blockchain                            |
@@ -37,6 +37,118 @@ Tài liệu này trình bày tổng quan kiến trúc, thành phần kỹ thuậ
 | Mainnet     | Mạng blockchain chính thức                                  |
 | Devnet      | Mạng blockchain phát triển/test                             |
 
+
+## Danh sách các Smart Contract và Điều kiện Thực thi
+
+### 1. Danh sách các Smart Contract chính
+
+| Tên Smart Contract   | Chức năng chính                                                                 | Dữ liệu lưu trữ chính                |
+|----------------------|-------------------------------------------------------------------------------|--------------------------------------|
+| **eduid**            | Quản lý định danh phi tập trung (DID), xác thực, quyền sở hữu, dịch vụ liên quan| DID Document, metadata, mapping ví   |
+| **educert**          | Quản lý cấp phát, thu hồi, xác thực chứng chỉ số (Verifiable Credential), mint NFT chứng chỉ | Credential, NFT, metadata, lịch sử   |
+| **eduadmission**     | Quản lý tuyển sinh, điểm số, kết quả xét tuyển, NFT ghế tuyển sinh, thuật toán matching | NFT ghế, điểm số, kết quả, metadata  |
+| **edupay**           | Quản lý thanh toán, escrow giữa học sinh và trường học, giải ngân tự động     | Escrow, giao dịch, proof, trạng thái |
+| **researchledger**   | Đăng ký fingerprint dữ liệu nghiên cứu, quản lý DOI, xác thực tác quyền, thưởng phát hiện đạo văn | Fingerprint, DOI, NFT nghiên cứu     |
+
+### 2. Điều kiện để Smart Contract được thực thi
+
+
+#### **eduid**
+- Định danh (DID) hợp lệ theo chuẩn W3C (did:method:id), đúng format, chưa bị thu hồi.
+- Người thực hiện là chủ sở hữu DID hoặc có quyền kiểm soát (controller).
+- Không bị trạng thái revoked.
+
+**Ví dụ điều kiện thực thi chức năng xác thực DID (VerifyDID):**
+
+Giả sử người dùng hoặc hệ thống muốn xác thực một DID trên smart contract `eduid`, các điều kiện sau phải thỏa mãn:
+
+1. DID phải đúng định dạng chuẩn, ví dụ: `did:eduid:123456789abcdef`.
+2. DID đã được đăng ký trên hệ thống (tồn tại DID Document).
+3. DID chưa bị thu hồi (không có trạng thái revoked).
+4. Nếu xác thực quyền sở hữu, người xác thực phải là chủ sở hữu hoặc controller của DID.
+
+**Luồng kiểm tra thực tế:**
+- Hệ thống nhận yêu cầu xác thực DID từ client.
+- Kiểm tra định dạng DID hợp lệ.
+- Truy vấn DID Document từ smart contract:
+    - Nếu không tồn tại, trả về "DID không tồn tại".
+    - Nếu có trạng thái revoked, trả về "DID đã bị thu hồi".
+    - Nếu hợp lệ, trả về thông tin xác thực (valid=true, active=true).
+
+**Ví dụ mã giả:**
+```rust
+fn verify_did(did: String) -> VerifyDIDResponse {
+    if !is_valid_format(&did) {
+        return VerifyDIDResponse { valid: false, active: false, reason: Some("Sai định dạng") };
+    }
+    if !did_exists(&did) {
+        return VerifyDIDResponse { valid: false, active: false, reason: Some("DID không tồn tại") };
+    }
+    if is_revoked(&did) {
+        return VerifyDIDResponse { valid: true, active: false, reason: Some("DID đã bị thu hồi") };
+    }
+    VerifyDIDResponse { valid: true, active: true, reason: None }
+}
+```
+
+
+#### **educert**
+- DID của người nhận credential phải hợp lệ, tồn tại trên hệ thống (đã đăng ký qua eduid).
+- Credential chưa bị thu hồi, không trùng lặp.
+- Chỉ tổ chức/cá nhân có quyền cấp phát mới được phép mint hoặc thu hồi credential.
+- Đáp ứng điều kiện nghiệp vụ (ví dụ: hoàn thành khóa học, được xác nhận bởi tổ chức).
+
+**Giải thích về định danh node khi biểu quyết quyền cấp bằng:**
+
+Khi thực hiện biểu quyết (voting) để quyết định node nào có quyền cấp bằng (mint credential), mỗi node trong hệ thống blockchain sẽ được định danh bằng **địa chỉ ví (address)** duy nhất trên chuỗi. Địa chỉ này thường là địa chỉ tài khoản validator hoặc operator của node, ví dụ: `evnd1...`, tương tự như địa chỉ ví người dùng nhưng thuộc về node vận hành.
+
+- **Địa chỉ node**: Là địa chỉ ví public (account address) được tạo khi khởi tạo node, dùng để nhận diện node trong các giao dịch, staking, voting, và các hoạt động quản trị chuỗi.
+- **Phân biệt node**: Mỗi node có một địa chỉ duy nhất, không trùng lặp, được sử dụng để ghi nhận quyền biểu quyết, quyền xác thực, và các quyền đặc biệt như cấp phát credential.
+- **Biểu quyết**: Khi có đề xuất (proposal) về quyền cấp bằng, các node sẽ sử dụng địa chỉ ví của mình để bỏ phiếu (vote) trên smart contract hoặc module quản trị chuỗi. Kết quả biểu quyết sẽ ghi nhận theo địa chỉ node.
+
+**Tóm lại:**
+> Node được định danh và phân biệt bằng địa chỉ ví (account address) trên blockchain, đây là địa chỉ dùng để xác thực quyền biểu quyết, quyền cấp bằng và các quyền quản trị khác trong hệ thống.
+
+#### **eduadmission**
+- DID của thí sinh và tổ chức đều hợp lệ, chưa bị thu hồi.
+- Thí sinh đáp ứng điều kiện xét tuyển (điểm số, credential liên quan).
+- NFT ghế tuyển sinh chưa được mint hoặc chưa bị chiếm dụng.
+- Đúng thời gian tuyển sinh, không vượt quá quota.
+
+
+#### **edupay**
+- Các bên tham gia (học sinh, trường) đều có DID hợp lệ.
+- Có đủ số dư eVND hoặc token để thực hiện giao dịch.
+- Đáp ứng điều kiện escrow (ví dụ: xác nhận nhập học, hoàn thành dịch vụ).
+- Không bị khóa tài khoản hoặc bị flagged gian lận.
+
+
+**Giải thích về Escrow, phân bổ/sử dụng học phí và quản lý học bổng:**
+
+**Escrow** là tài khoản ký quỹ trung gian trên blockchain, nơi học phí hoặc khoản thanh toán được "giữ tạm thời" thay vì chuyển trực tiếp cho trường ngay khi học sinh đăng ký. Số tiền này chỉ được giải ngân cho trường khi các điều kiện hợp đồng được đáp ứng (ví dụ: học sinh xác nhận nhập học, hoàn thành thủ tục, hoặc hết thời gian khiếu nại).
+
+**Quy trình giải ngân và phân bổ học phí dùng escrow:**
+1. Học sinh chuyển học phí vào tài khoản escrow (qua smart contract edupay).
+2. Smart contract ghi nhận số tiền và trạng thái giao dịch (pending).
+3. Khi học sinh xác nhận nhập học/thỏa mãn điều kiện hợp đồng (qua API hoặc smart contract), smart contract sẽ tự động chuyển (giải ngân) học phí từ escrow sang ví của trường hoặc phân bổ theo tỷ lệ đã định (ví dụ: chia cho các bộ phận, quỹ phát triển, giáo viên...).
+4. Nếu có tranh chấp hoặc không đủ điều kiện, tiền có thể hoàn lại cho học sinh hoặc xử lý theo quy định hợp đồng.
+
+**Quản lý học bổng:**
+- Học bổng có thể được cấp phát tự động qua smart contract dựa trên điều kiện (điểm số, thành tích, hoàn cảnh, đề xuất từ trường...).
+- Quỹ học bổng được nạp vào smart contract, chỉ giải ngân cho học sinh đủ điều kiện (qua xác thực DID, kiểm tra tiêu chí).
+- Học sinh nhận học bổng sẽ được chuyển trực tiếp vào ví cá nhân hoặc trừ vào học phí (nếu có).
+- Toàn bộ quá trình cấp phát, sử dụng học bổng đều minh bạch, truy vết được trên blockchain.
+
+**Lợi ích:**
+- Đảm bảo an toàn cho cả học sinh và trường, tránh lừa đảo hoặc tranh chấp.
+- Tăng tính minh bạch, tự động hóa quy trình thanh toán, phân bổ tài chính, cấp phát học bổng, giảm rủi ro và gian lận.
+
+#### **researchledger**
+- DID của tác giả/nghiên cứu viên hợp lệ.
+- Dữ liệu fingerprint chưa bị trùng lặp, chưa bị thu hồi.
+- Đáp ứng điều kiện xác thực (ví dụ: có credential nghiên cứu, xác nhận của tổ chức).
+
+---
 
 ## 1. Tổng quan dự án
 VietEduChain là nền tảng blockchain permissioned dựa trên Cosmos SDK, tích hợp các dịch vụ backend (BE) và frontend (FE) để cung cấp các API quản lý định danh, chứng chỉ, thanh toán và lưu trữ dữ liệu phi tập trung cho lĩnh vực giáo dục.
