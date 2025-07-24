@@ -1,0 +1,6 @@
+# Blockchain data directory
+data/
+
+# Docker volumes and local blockchain state
+*.log
+node_modules/

@@ -1,0 +1,18 @@
+FROM cosmwasm/wasmd:v0.50.0
+
+# Set working directory
+WORKDIR /root
+
+# Create wasmd data directory
+RUN mkdir -p /root/.wasmd
+
+# Expose blockchain ports
+# 26656: P2P port for node communication
+# 26657: RPC port for blockchain queries
+# 1317: REST API port for HTTP queries  
+# 9090: gRPC port for advanced queries
+EXPOSE 26656 26657 1317 9090
+
+# Use wasmd as default entrypoint
+ENTRYPOINT ["wasmd"]
+CMD ["start", "--home", "/root/.wasmd"]
