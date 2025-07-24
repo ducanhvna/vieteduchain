@@ -1,0 +1,36 @@
+FROM cosmwasm/wasmd:v0.50.0
+
+# Set up the environment variables
+ENV DAEMON_NAME=wasmd
+ENV DAEMON_HOME=/root/.wasmd
+ENV DAEMON_ALLOW_DOWNLOAD_BINARIES=true
+ENV DAEMON_RESTART_AFTER_UPGRADE=true
+
+# Create directory for wasmd data
+WORKDIR /root
+RUN mkdir -p /root/.wasmd && chmod 755 /root/.wasmd
+
+# Create a simple entrypoint script
+RUN echo '#!/bin/sh' > /entrypoint.sh && \
+    echo 'set -e' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo '# If arguments are provided, run them directly' >> /entrypoint.sh && \
+    echo 'if [ "$#" -ne 0 ]; then' >> /entrypoint.sh && \
+    echo '    exec "$@"' >> /entrypoint.sh && \
+    echo 'fi' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo '# Otherwise, start wasmd with default configuration' >> /entrypoint.sh && \
+    echo 'exec wasmd start --home /root/.wasmd' >> /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+# Expose ports  
+# 26656: P2P port for Tendermint
+# 26657: RPC port for Tendermint
+# 1317: Cosmos REST API
+# 1318: FastAPI Custom REST API (if available)
+# 9090: gRPC port
+EXPOSE 26656 26657 1317 1318 9090
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["wasmd", "start", "--home", "/root/.wasmd"]
